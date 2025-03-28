@@ -5,17 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Space_intruders"
         mc:Ignorable="d"
-        Title="GameWindow" Height="600" Width="400">
+        Title="GameWindow" Height="600" Width="800">
 
     <Canvas x:Name="gameCanvas"
-            Width="400" Height="580"
+            Width="800" Height="580"
             VerticalAlignment="Top"
             HorizontalAlignment="Center">
 
         <Image  x:Name="playerImage"
                 Width="30"
                 Height="30"
-                Canvas.Left="185"
+                Canvas.Left="370"
                 Canvas.Top="530"
                 Source="/Resources/stickman.png"/>
     </Canvas>
