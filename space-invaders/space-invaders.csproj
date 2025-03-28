@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <None Remove="Resources\arrow.png" />
+    <None Remove="Resources\ball.png" />
     <None Remove="Resources\enemy.png" />
     <None Remove="Resources\enemy1.png" />
     <None Remove="Resources\enemy2.png" />
@@ -23,6 +24,9 @@
 
   <ItemGroup>
     <Resource Include="Resources\arrow.png" />
+    <Resource Include="Resources\ball.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\enemy.png" />
     <Resource Include="Resources\enemy1.png" />
     <Resource Include="Resources\enemy2.png" />

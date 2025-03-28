@@ -21,7 +21,6 @@ namespace Space_intruders
         public int GetSpeed() { return this.Speed; }
         public int GetDMG() { return this.DMG; }
         public Image GetImageSource() { return this.ArrowImage; }
-
         public void SetID(int id) { this.ID = id; }
         public void SetSpeed(int speed) { this.Speed = speed; }
         public void SetDMG(int dmg) { this.DMG = dmg; }
