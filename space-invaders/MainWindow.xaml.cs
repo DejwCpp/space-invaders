@@ -12,9 +12,10 @@ public partial class MainWindow : Window
         InitializeComponent();
         StartButton.Click += (s, e) => {
             GameWindow gameWindow = new GameWindow();
+            Application.Current.MainWindow = gameWindow;
             gameWindow.Show();
             Enemies enemies;
-            enemies = new Enemies(gameWindow.gameCanvas);
+            enemies = new Enemies(gameWindow.gameCanvas, gameWindow);
             this.Close();
         };
     }

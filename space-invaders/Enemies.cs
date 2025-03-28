@@ -56,7 +56,6 @@ namespace Space_intruders
             double projectileLeft = Canvas.GetLeft(projectileImage);
             double projectileTop = Canvas.GetTop(projectileImage);
 
-
             double projectileRight = projectileLeft + projectileImage.Width;
             double projectileBottom = projectileTop + projectileImage.Height;
 
@@ -127,12 +126,15 @@ namespace Space_intruders
         private int enemyFrameIndex = 0;
         private int enemyFrameCount = 2; // Set to 2 for two images, 3 for three images
         private string[] enemyImagePaths = { "/Resources/enemy1.png", "/Resources/enemy2.png", "/Resources/enemy3.png" };
+        private double loseThreshold;
         public GameWindow gameWindow;
 
 
-        public Enemies(Canvas gameCanvas)
+        public Enemies(Canvas gameCanvas, GameWindow gameWindow)
         {
             canvas = gameCanvas;
+            this.gameWindow = gameWindow;
+            loseThreshold = gameWindow.ActualHeight;
             StartEnemyMovement();
             StartEnemyShooting();
             StartEnemyAnimation();
@@ -198,8 +200,6 @@ namespace Space_intruders
                 }
             }
         }
-
-        private double loseThreshold = 450;
 
         private void MoveEnemiesDown()
         {

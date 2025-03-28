@@ -13,7 +13,7 @@ namespace Space_intruders
 {
     public partial class GameWindow : Window
     {
-        int marginPoz = 185;
+        int marginPoz = 370;
         Player player = new();
         static int counter = 0;
         public Dictionary<int, Arrow> arrows = new Dictionary<int, Arrow>();
@@ -26,7 +26,7 @@ namespace Space_intruders
             InitializeComponent();
             this.PreviewKeyDown += new KeyEventHandler(PlayerMovement);
             InitializePlayer();
-            enemies = new Enemies(gameCanvas);
+            enemies = new Enemies(gameCanvas, this);
             enemies.InitializeEnemies();
             InitializeShields();
         }
