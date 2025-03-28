@@ -41,7 +41,7 @@ namespace Space_intruders
         }
         private void InitializeShields()
         {
-            double[] shieldPositions = { 50, 200, 350 };
+            double[] shieldPositions = { 100, 250, 400, 550, 700 };
 
             foreach (double posX in shieldPositions)
             {
