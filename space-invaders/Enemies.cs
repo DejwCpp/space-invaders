@@ -10,7 +10,7 @@ namespace Space_intruders
     public class EnemyType
     {
         public string[] EnemyImageFrames { get; set; }
-        public string ProjectileImagePath { get; set; }
+        public string[] ProjectileImageFrames { get; set; }
         public double ProjectileSpeed { get; set; }
     }
 
@@ -38,25 +38,25 @@ namespace Space_intruders
         private EnemyType[] enemyTypes = new EnemyType[]
         {
             new EnemyType {
-                EnemyImageFrames = new string[] { "/Resources/enemy.png", "/Resources/enemy.png" },
-                ProjectileImagePath = "/Resources/enemy.png",
+                EnemyImageFrames = new string[] { "/Resources/wizard/normal/animation1.png", "/Resources/wizard/normal/animation2.png", "/Resources/wizard/normal/animation3.png", "/Resources/wizard/normal/animation4.png" },
+                ProjectileImageFrames = new string[] { "/Resources/wizard/bullet/bullet1.png", "/Resources/wizard/bullet/bullet2.png" },
                 ProjectileSpeed = 7.0
             },
             new EnemyType {
-                EnemyImageFrames = new string[] { "/Resources/enemy1.png", "/Resources/enemy2.png" },
-                ProjectileImagePath = "/Resources/enemy.png",
+                EnemyImageFrames = new string[] { "/Resources/wizard/normal/animation1.png", "/Resources/wizard/normal/animation2.png", "/Resources/wizard/normal/animation3.png", "/Resources/wizard/normal/animation4.png" },
+                ProjectileImageFrames = new string[] { "/Resources/wizard/bullet/bullet1.png", "/Resources/wizard/bullet/bullet2.png" },
+                ProjectileSpeed = 7.0
+            },
+            new EnemyType {
+                EnemyImageFrames = new string[] { "/Resources/enemy1.png", "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy2.png" },
+                ProjectileImageFrames = new string[] { "/Resources/enemy.png" },
                 ProjectileSpeed = 5.0
             },
             new EnemyType {
-                EnemyImageFrames = new string[] { "/Resources/enemy2.png", "/Resources/enemy1.png" },
-                ProjectileImagePath = "/Resources/ball.png",
+                EnemyImageFrames = new string[] { "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy1.png", "/Resources/enemy2.png"  },
+                ProjectileImageFrames = new string[] { "/Resources/ball.png" },
                 ProjectileSpeed = 4.0
             },
-            new EnemyType {
-                EnemyImageFrames = new string[] { "/Resources/enemy1.png", "/Resources/enemy2.png" },
-                ProjectileImagePath = "/Resources/ball.png",
-                ProjectileSpeed = 3.0
-            }
         };
 
         public Enemies(Canvas gameCanvas, GameWindow gameWindow)
@@ -167,7 +167,7 @@ namespace Space_intruders
 
         private void AnimateEnemies(object sender, EventArgs e)
         {
-            enemyFrameIndex = (enemyFrameIndex + 1) % 2; // Toggle between two frames
+            enemyFrameIndex = (enemyFrameIndex + 1) % 4; // Toggle between two frames
 
             foreach (var enemy in enemies)
             {
@@ -187,7 +187,7 @@ namespace Space_intruders
             double enemyX = Canvas.GetLeft(shootingEnemy) + (EnemyWidth / 2) - 10;
             double enemyY = Canvas.GetTop(shootingEnemy) + EnemyHeight;
 
-            new EnemyProjectile(canvas, enemyX, enemyY, enemyType.ProjectileSpeed, enemyType.ProjectileImagePath);
+            new EnemyProjectile(canvas, enemyX, enemyY, enemyType.ProjectileSpeed, enemyType.ProjectileImageFrames);
 
             enemyFireTimer.Interval = TimeSpan.FromSeconds(random.Next(1, 4));
         }
@@ -197,28 +197,36 @@ namespace Space_intruders
     {
         private Image projectileImage;
         private DispatcherTimer moveTimer;
+        private DispatcherTimer animationTimer;
         private double speed;
         private Canvas canvas;
+        private string[] frames;
+        private int frameIndex = 0;
 
-        public EnemyProjectile(Canvas gameCanvas, double startX, double startY, double projectileSpeed, string imagePath)
+        public EnemyProjectile(Canvas gameCanvas, double startX, double startY, double projectileSpeed, string[] projectileFrames)
         {
             canvas = gameCanvas;
             speed = projectileSpeed;
+            frames = projectileFrames;
 
             projectileImage = new Image
             {
                 Width = 20,
                 Height = 20,
-                Source = new BitmapImage(new Uri(imagePath, UriKind.Relative))
+                Source = new BitmapImage(new Uri(frames[0], UriKind.Relative))
             };
 
             Canvas.SetLeft(projectileImage, startX);
             Canvas.SetTop(projectileImage, startY);
             canvas.Children.Add(projectileImage);
 
-            moveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+            moveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) }; // projectile speed but you have ProjectileSpeed varriable in EnemyType class
             moveTimer.Tick += MoveProjectile;
             moveTimer.Start();
+
+            animationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) }; // animation speed
+            animationTimer.Tick += AnimateProjectile;
+            animationTimer.Start();
         }
 
         private void MoveProjectile(object sender, EventArgs e)
@@ -227,6 +235,7 @@ namespace Space_intruders
             if (currentTop >= ((FrameworkElement)canvas.Parent).ActualHeight)
             {
                 moveTimer.Stop();
+                animationTimer.Stop();
                 canvas.Children.Remove(projectileImage);
             }
             else
@@ -234,6 +243,12 @@ namespace Space_intruders
                 Canvas.SetTop(projectileImage, currentTop + speed);
                 CheckCollision();
             }
+        }
+
+        private void AnimateProjectile(object sender, EventArgs e)
+        {
+            frameIndex = (frameIndex + 1) % frames.Length;
+            projectileImage.Source = new BitmapImage(new Uri(frames[frameIndex], UriKind.Relative));
         }
 
         private void CheckCollision()
@@ -264,6 +279,7 @@ namespace Space_intruders
                 if (isColliding)
                 {
                     moveTimer.Stop();
+                    animationTimer.Stop();
                     canvas.Children.Remove(projectileImage);
                     shield.TakeDamage();
                     return;
@@ -282,6 +298,7 @@ namespace Space_intruders
             if (playerColliding)
             {
                 moveTimer.Stop();
+                animationTimer.Stop();
                 canvas.Children.Remove(projectileImage);
                 MessageBox.Show("Uderzył Cię the rock!", "Sus", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
