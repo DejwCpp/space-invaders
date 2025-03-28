@@ -46,7 +46,7 @@ public class Shield
             shieldImage.Source = new BitmapImage(new Uri(shieldImages[1], UriKind.Relative));
 
         }
-        if (durability == 1)
+        else if (durability == 1)
         {
             shieldImage.Source = new BitmapImage(new Uri(shieldImages[2], UriKind.Relative));
 
