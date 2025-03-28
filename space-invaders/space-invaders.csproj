@@ -15,6 +15,8 @@
     <None Remove="Resources\enemy1.png" />
     <None Remove="Resources\enemy2.png" />
     <None Remove="Resources\shield.png" />
+    <None Remove="Resources\shield2.png" />
+    <None Remove="Resources\shield3.png" />
     <None Remove="Resources\stickman.jpg" />
     <None Remove="Resources\stickman.png" />
   </ItemGroup>
@@ -25,6 +27,8 @@
     <Resource Include="Resources\enemy1.png" />
     <Resource Include="Resources\enemy2.png" />
     <Resource Include="Resources\shield.png" />
+    <Resource Include="Resources\shield2.png" />
+    <Resource Include="Resources\shield3.png" />
     <Resource Include="Resources\stickman.jpg" />
     <Resource Include="Resources\stickman.png" />
   </ItemGroup>
