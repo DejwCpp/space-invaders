@@ -113,7 +113,7 @@ namespace Space_intruders
         private const int EnemySpacing = 10;
         private const int MoveDistance = 10;
         private const int MoveDownDistance = 15;
-        private const int MoveTickDurationMs = 700;
+        private const int MoveTickDurationMs = 100;
         private bool movingRight = true;
         public List<Image> enemies = new List<Image>();
         private DispatcherTimer enemyMoveTimer;
@@ -209,7 +209,7 @@ namespace Space_intruders
                 Canvas.SetTop(enemy, newTop);
 
                 // Check if the enemy has moved below the losing threshold
-                if (newTop >= loseThreshold)
+                if (newTop <= loseThreshold)
                 {
                     enemyMoveTimer.Stop();
                     enemyFireTimer.Stop();
