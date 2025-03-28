@@ -51,7 +51,7 @@ public class Shield
             shieldImage.Source = new BitmapImage(new Uri(shieldImages[2], UriKind.Relative));
 
         }
-        else if (durability >= 0)
+        else if (durability == 0)
         {
             canvas.Children.Remove(shieldImage);
         }
