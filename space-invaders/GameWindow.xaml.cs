@@ -45,7 +45,7 @@ namespace Space_intruders
 
             foreach (double posX in shieldPositions)
             {
-                shields.Add(new Shield(gameCanvas, posX, 400));
+                shields.Add(new Shield(gameCanvas, posX, 470));
             }
         }
         public void SpawnNewArrow()
