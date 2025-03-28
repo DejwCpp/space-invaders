@@ -108,8 +108,8 @@ namespace Space_intruders
     {
         private const int EnemyWidth = 50;
         private const int EnemyHeight = 50;
-        private const int Columns = 5;
-        private const int Rows = 6;
+        private const int Columns = 10;
+        private const int Rows = 4;
         private const int EnemySpacing = 10;
         private const int MoveDistance = 10;
         private const int MoveDownDistance = 15;
@@ -126,7 +126,7 @@ namespace Space_intruders
         private int enemyFrameIndex = 0;
         private int enemyFrameCount = 2; // Set to 2 for two images, 3 for three images
         private string[] enemyImagePaths = { "/Resources/enemy1.png", "/Resources/enemy2.png", "/Resources/enemy3.png" };
-        private double loseThreshold;
+        private double loseThreshold = 490;
         public GameWindow gameWindow;
 
 
@@ -134,7 +134,6 @@ namespace Space_intruders
         {
             canvas = gameCanvas;
             this.gameWindow = gameWindow;
-            loseThreshold = gameWindow.ActualHeight;
             StartEnemyMovement();
             StartEnemyShooting();
             StartEnemyAnimation();
@@ -209,7 +208,7 @@ namespace Space_intruders
                 Canvas.SetTop(enemy, newTop);
 
                 // Check if the enemy has moved below the losing threshold
-                if (newTop <= loseThreshold)
+                if (newTop >= loseThreshold)
                 {
                     enemyMoveTimer.Stop();
                     enemyFireTimer.Stop();
