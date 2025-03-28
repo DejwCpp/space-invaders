@@ -41,21 +41,17 @@ public class Shield
     {
         durability--;
 
-        if(durability==6)
-        {
-            shieldImage.Source = new BitmapImage(new Uri(shieldImages[6 - durability], UriKind.Relative));
-
-        }
         if (durability == 3)
         {
-            shieldImage.Source = new BitmapImage(new Uri(shieldImages[6 - durability], UriKind.Relative));
+            shieldImage.Source = new BitmapImage(new Uri(shieldImages[1], UriKind.Relative));
 
         }
-        else if (durability > 0)
+        if (durability == 1)
         {
-            shieldImage.Source = new BitmapImage(new Uri(shieldImages[6 - durability], UriKind.Relative));
+            shieldImage.Source = new BitmapImage(new Uri(shieldImages[2], UriKind.Relative));
+
         }
-        else
+        else if (durability >= 0)
         {
             canvas.Children.Remove(shieldImage);
         }
