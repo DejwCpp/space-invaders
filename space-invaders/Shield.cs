@@ -26,7 +26,8 @@ public class Shield
         {
             Width = 70,
             Height = 53,
-            Source = new BitmapImage(new Uri(shieldImages[0], UriKind.Relative))
+            Source = new BitmapImage(new Uri(shieldImages[0], UriKind.Relative)),
+            Tag = "built"
         };
 
         Canvas.SetLeft(shieldImage, posX - shieldImage.Width / 2);
@@ -54,6 +55,7 @@ public class Shield
         else if (durability == 0)
         {
             canvas.Children.Remove(shieldImage);
+            shieldImage.Tag = "destroyed";
         }
     }
 }

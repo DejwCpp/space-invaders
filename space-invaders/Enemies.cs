@@ -63,7 +63,7 @@ namespace Space_intruders
             foreach (var shield in gameWindow.shields)
             {
                 Image shieldImg = shield.GetImage();
-                if (shieldImg == null) continue;
+                if (shieldImg.Tag.ToString() == "destroyed") continue;
 
 
 
@@ -113,7 +113,7 @@ namespace Space_intruders
         private const int EnemySpacing = 10;
         private const int MoveDistance = 10;
         private const int MoveDownDistance = 15;
-        private const int MoveTickDurationMs = 100;
+        private const int MoveTickDurationMs = 300;
         private bool movingRight = true;
         public List<Image> enemies = new List<Image>();
         private DispatcherTimer enemyMoveTimer;
