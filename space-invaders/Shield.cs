@@ -20,7 +20,7 @@ public class Shield
     public Shield(Canvas gameCanvas, double posX, double posY)
     {
         canvas = gameCanvas;
-        durability = 3;
+        durability = 6;
 
         shieldImage = new Image()
         {
@@ -41,9 +41,19 @@ public class Shield
     {
         durability--;
 
-        if (durability > 0)
+        if(durability==6)
         {
-            shieldImage.Source = new BitmapImage(new Uri(shieldImages[3 - durability], UriKind.Relative));
+            shieldImage.Source = new BitmapImage(new Uri(shieldImages[6 - durability], UriKind.Relative));
+
+        }
+        if (durability == 3)
+        {
+            shieldImage.Source = new BitmapImage(new Uri(shieldImages[6 - durability], UriKind.Relative));
+
+        }
+        else if (durability > 0)
+        {
+            shieldImage.Source = new BitmapImage(new Uri(shieldImages[6 - durability], UriKind.Relative));
         }
         else
         {
