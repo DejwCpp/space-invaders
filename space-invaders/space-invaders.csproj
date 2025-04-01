@@ -12,9 +12,13 @@
   <ItemGroup>
     <None Remove="Resources\arrow.png" />
     <None Remove="Resources\ball.png" />
+    <None Remove="Resources\coin.png" />
     <None Remove="Resources\enemy.png" />
     <None Remove="Resources\enemy1.png" />
     <None Remove="Resources\enemy2.png" />
+    <None Remove="Resources\heart.png" />
+    <None Remove="Resources\main-bg.jpg" />
+    <None Remove="Resources\parchment_background.jpg" />
     <None Remove="Resources\shield.png" />
     <None Remove="Resources\shield2.png" />
     <None Remove="Resources\shield3.png" />
@@ -40,13 +44,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <DesignDataWithDesignTimeCreatableTypes Include="Resources\parchment_background.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Resources\arrow.png" />
     <Resource Include="Resources\ball.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Resources\coin.png" />
     <Resource Include="Resources\enemy.png" />
     <Resource Include="Resources\enemy1.png" />
     <Resource Include="Resources\enemy2.png" />
+    <Resource Include="Resources\heart.png" />
+    <Resource Include="Resources\main-bg.jpg" />
     <Resource Include="Resources\shield.png" />
     <Resource Include="Resources\shield2.png" />
     <Resource Include="Resources\shield3.png" />
