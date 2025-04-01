@@ -16,7 +16,10 @@ namespace Space_intruders
         private Image ArrowImage;
         private GameWindow gameWindow;
         private DispatcherTimer arrowMoveTimer;
+        private bool isMoving = false; 
 
+
+        // Getters/Setters
         public int GetID() { return this.ID; }
         public int GetSpeed() { return this.Speed; }
         public int GetDMG() { return this.DMG; }
@@ -27,34 +30,37 @@ namespace Space_intruders
         public void SetImageSource(Image source) { this.ArrowImage = source; }
         public void SetGameWindow(GameWindow window) { this.gameWindow = window; }
 
+ 
         public void SetTimer()
         {
+            // Prevent starting multiple timers for the same arrow
+            if (isMoving) return;
+
             arrowMoveTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(25)
+                Interval = TimeSpan.FromMilliseconds(20) 
             };
-            arrowMoveTimer.Tick += (s, e) => MoveAndCheck();
+            arrowMoveTimer.Tick += MoveAndCheck;
             arrowMoveTimer.Start();
+            isMoving = true;
         }
 
-        private void MoveAndCheck()
+        public void StopTimer()
         {
-            if (ArrowImage == null || gameWindow == null || !gameWindow.gameCanvas.Children.Contains(ArrowImage))
-            {
-                arrowMoveTimer?.Stop();
-                if (gameWindow != null && gameWindow.arrows.ContainsKey(ID))
-                {
-                    gameWindow.Dispatcher.Invoke(() => gameWindow.RemoveArrow(ID));
-                }
-                return;
-            }
+            arrowMoveTimer?.Stop();
+            isMoving = false;
+        }
 
-            gameWindow.Dispatcher.Invoke(() =>
+
+        private void MoveAndCheck(object sender, EventArgs e) 
+        {
+            gameWindow?.Dispatcher.Invoke(() =>
             {
-                if (!gameWindow.gameCanvas.Children.Contains(ArrowImage))
+                // Basic validity checks
+                if (ArrowImage == null || gameWindow == null || !gameWindow.gameCanvas.Children.Contains(ArrowImage) || !isMoving)
                 {
-                    arrowMoveTimer?.Stop();
-                    gameWindow.RemoveArrow(ID);
+                    StopTimer();           
+                    gameWindow?.RemoveArrow(ID);
                     return;
                 }
 
@@ -64,17 +70,18 @@ namespace Space_intruders
 
                 bool collisionOccurred = CheckCollisions();
 
+                // Remove arrow if it goes off-screen AND no collision happened
                 if (!collisionOccurred && newTop < -ArrowImage.Height)
                 {
-                    arrowMoveTimer.Stop();
+                    StopTimer();
                     gameWindow.RemoveArrow(ID);
                 }
             });
         }
-
+        
         private bool CheckCollisions()
         {
-            if (ArrowImage == null || gameWindow == null) return false;
+            if (ArrowImage == null || gameWindow == null || !isMoving) return false;
 
             Rect arrowRect = new Rect(
                 Canvas.GetLeft(ArrowImage),
@@ -83,12 +90,15 @@ namespace Space_intruders
                 ArrowImage.Height
             );
 
+
+            // Check Shield Collisions
             foreach (var shield in gameWindow.shields.ToList())
             {
                 if (shield.GetDurability() <= 0) continue;
 
                 Image shieldImage = shield.GetImage();
                 if (shieldImage == null || !gameWindow.gameCanvas.Children.Contains(shieldImage)) continue;
+
 
                 Rect shieldRect = new Rect(
                     Canvas.GetLeft(shieldImage),
@@ -100,20 +110,25 @@ namespace Space_intruders
                 if (arrowRect.IntersectsWith(shieldRect))
                 {
                     shield.TakeDamage();
-                    arrowMoveTimer.Stop();
+                    StopTimer(); 
                     gameWindow.RemoveArrow(ID);
                     return true;
                 }
             }
 
+            // Check Enemy Collisions
             Image lowestHitEnemy = null;
-            double maxEnemyTop = double.MinValue;
+            double maxEnemyTop = double.MinValue; 
 
-            List<Image> currentEnemies = gameWindow.enemies.enemies.ToList();
+            // Iterate over a copy of the enemy list for safety
+            List<Image> currentEnemies = gameWindow.enemies?.enemies?.ToList() ?? new List<Image>();
+
 
             foreach (var enemy in currentEnemies)
             {
+                // Ensure enemy is valid and still on the canvas
                 if (enemy == null || !gameWindow.gameCanvas.Children.Contains(enemy)) continue;
+
 
                 Rect enemyRect = new Rect(
                     Canvas.GetLeft(enemy),
@@ -125,6 +140,7 @@ namespace Space_intruders
                 if (arrowRect.IntersectsWith(enemyRect))
                 {
                     double currentEnemyTop = Canvas.GetTop(enemy);
+         
                     if (currentEnemyTop > maxEnemyTop)
                     {
                         maxEnemyTop = currentEnemyTop;
@@ -133,20 +149,17 @@ namespace Space_intruders
                 }
             }
 
+            
             if (lowestHitEnemy != null)
             {
-                if (gameWindow.enemies.enemies.Contains(lowestHitEnemy))
-                {
-                    gameWindow.enemies.enemies.Remove(lowestHitEnemy);
-                    gameWindow.gameCanvas.Children.Remove(lowestHitEnemy);
-                }
+                gameWindow.enemies?.EnemyHit(lowestHitEnemy); 
 
-                arrowMoveTimer.Stop();
-                gameWindow.RemoveArrow(ID);
-                return true;
+                StopTimer(); 
+                gameWindow.RemoveArrow(ID); 
+                return true; 
             }
 
-            return false;
+            return false; 
         }
     }
 }
