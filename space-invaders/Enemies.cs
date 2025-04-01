@@ -12,6 +12,7 @@ namespace Space_intruders
         public string[] EnemyImageFrames { get; set; }
         public string[] ProjectileImageFrames { get; set; }
         public double ProjectileSpeed { get; set; }
+        private int Points { get; set; }
     }
 
     public class Enemies
@@ -33,6 +34,8 @@ namespace Space_intruders
         private Canvas canvas;
         private Random random = new Random();
         private double loseThreshold = 490;
+        private int score;
+        private Dictionary<int, Enemies> enemiesPoints = new Dictionary<int, Enemies>();
         public GameWindow gameWindow;
 
         private EnemyType[] enemyTypes = new EnemyType[]
@@ -40,22 +43,26 @@ namespace Space_intruders
             new EnemyType {
                 EnemyImageFrames = new string[] { "/Resources/wizard/normal/animation1.png", "/Resources/wizard/normal/animation2.png", "/Resources/wizard/normal/animation3.png", "/Resources/wizard/normal/animation4.png" },
                 ProjectileImageFrames = new string[] { "/Resources/wizard/bullet/bullet1.png", "/Resources/wizard/bullet/bullet2.png" },
-                ProjectileSpeed = 7.0
+                ProjectileSpeed = 7.0,
+                Points = 5
             },
             new EnemyType {
                 EnemyImageFrames = new string[] { "/Resources/wizard/normal/animation1.png", "/Resources/wizard/normal/animation2.png", "/Resources/wizard/normal/animation3.png", "/Resources/wizard/normal/animation4.png" },
                 ProjectileImageFrames = new string[] { "/Resources/wizard/bullet/bullet1.png", "/Resources/wizard/bullet/bullet2.png" },
-                ProjectileSpeed = 7.0
+                ProjectileSpeed = 7.0,
+                Points = 10
             },
             new EnemyType {
                 EnemyImageFrames = new string[] { "/Resources/enemy1.png", "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy2.png" },
                 ProjectileImageFrames = new string[] { "/Resources/enemy.png" },
-                ProjectileSpeed = 5.0
+                ProjectileSpeed = 5.0,
+                Points = 15
             },
             new EnemyType {
                 EnemyImageFrames = new string[] { "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy1.png", "/Resources/enemy2.png"  },
                 ProjectileImageFrames = new string[] { "/Resources/ball.png" },
-                ProjectileSpeed = 4.0
+                ProjectileSpeed = 4.0,
+                Points = 20
             },
         };
 
@@ -66,6 +73,7 @@ namespace Space_intruders
             StartEnemyMovement();
             StartEnemyShooting();
             StartEnemyAnimation();
+            CountPoints();
         }
 
         public void InitializeEnemies()
@@ -88,6 +96,7 @@ namespace Space_intruders
                     Canvas.SetTop(enemy, row * (EnemyHeight + EnemySpacing));
                     canvas.Children.Add(enemy);
                     enemies.Add(enemy);
+                    enemiesPoints[enemiesPoints] = enemyType.Points;
                 }
             }
         }
@@ -190,6 +199,12 @@ namespace Space_intruders
             new EnemyProjectile(canvas, enemyX, enemyY, enemyType.ProjectileSpeed, enemyType.ProjectileImageFrames);
 
             enemyFireTimer.Interval = TimeSpan.FromSeconds(random.Next(1, 4));
+        }
+        private int CountPoints(int Points)
+        {
+            score += Points;
+            ScoreLabel.Content = $"Score: {score}";
+
         }
     }
 
