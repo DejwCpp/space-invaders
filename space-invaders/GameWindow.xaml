@@ -12,6 +12,12 @@
             VerticalAlignment="Top"
             HorizontalAlignment="Center">
 
+        <!-- Hearts Display -->
+        <StackPanel x:Name="heartsPanel"
+                Orientation="Horizontal"
+                Canvas.Left="15"
+                Canvas.Top="10"/>
+
         <Image  x:Name="playerImage"
                 Width="30"
                 Height="30"

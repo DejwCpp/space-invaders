@@ -95,7 +95,6 @@ namespace Space_intruders
                         Source = new BitmapImage(new Uri(enemyType.EnemyImageFrames[0], UriKind.Relative)),
                         Tag = enemyType
                     };
-
                     Canvas.SetLeft(enemy, col * (EnemyWidth + EnemySpacing));
                     Canvas.SetTop(enemy, row * (EnemyHeight + EnemySpacing));
                     canvas.Children.Add(enemy);
@@ -265,12 +264,33 @@ namespace Space_intruders
             projectileImage.Source = new BitmapImage(new Uri(frames[frameIndex], UriKind.Relative));
         }
 
+        private void UpdateHearts()
+        {
+            GameWindow gameWindow = (GameWindow)Application.Current.MainWindow;
+            Player player = gameWindow.player;
+
+            gameWindow.heartsPanel.Children.Clear();
+
+            for (int i = 0; i < player.GetHP(); i++)
+            {
+                Image heartImage = new Image
+                {
+                    Source = new BitmapImage(new Uri("/Resources/heart.png", UriKind.Relative)),
+                    Width = 40,
+                    Height = 40,
+                    Margin = new Thickness(5, 0, 0, 0)
+                };
+                gameWindow.heartsPanel.Children.Add(heartImage);
+            }
+        }
+
         private void CheckCollision()
         {
             GameWindow gameWindow = (GameWindow)Application.Current.MainWindow;
+            Player player = gameWindow.player;
+
             double projectileLeft = Canvas.GetLeft(projectileImage);
             double projectileTop = Canvas.GetTop(projectileImage);
-
             double projectileRight = projectileLeft + projectileImage.Width;
             double projectileBottom = projectileTop + projectileImage.Height;
 
@@ -314,7 +334,15 @@ namespace Space_intruders
                 moveTimer.Stop();
                 animationTimer.Stop();
                 canvas.Children.Remove(projectileImage);
-                MessageBox.Show("Uderzył Cię the rock!", "Sus", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                player.SetHP(player.GetHP() - 1);
+                UpdateHearts();
+
+                if (player.GetHP() <= 0)
+                {
+                    MessageBox.Show("Dedło Ci się!", "Wasted", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    Application.Current.Shutdown();
+                }
             }
         }
 
