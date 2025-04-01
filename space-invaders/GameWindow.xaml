@@ -12,11 +12,19 @@
             VerticalAlignment="Top"
             HorizontalAlignment="Center">
 
+        <!-- Hearts Display -->
+        <StackPanel x:Name="heartsPanel"
+                Orientation="Horizontal"
+                Canvas.Left="15"
+                Canvas.Top="10"/>
+
         <Image  x:Name="playerImage"
                 Width="30"
                 Height="30"
                 Canvas.Left="370"
                 Canvas.Top="530"
                 Source="/Resources/stickman.png"/>
+        <Label  x:Name="ScoreLabel"
+                Fontsize="20" />
     </Canvas>
 </Window>

@@ -14,7 +14,7 @@ namespace Space_intruders
     public partial class GameWindow : Window
     {
         int marginPoz = 370;
-        Player player = new();
+        public Player player = new();
         static int counter = 0;
         public Dictionary<int, Arrow> arrows = new Dictionary<int, Arrow>();
         public List<Shield> shields = new List<Shield>();
@@ -29,6 +29,7 @@ namespace Space_intruders
             enemies = new Enemies(gameCanvas, this);
             enemies.InitializeEnemies();
             InitializeShields();
+            InitializeHeartImages();
         }
 
         private void InitializePlayer()
@@ -47,6 +48,23 @@ namespace Space_intruders
             {
                 shields.Add(new Shield(gameCanvas, posX, 470));
             }
+        }
+        private void InitializeHeartImages()
+        {
+            for (int i = 0; i < player.GetHP(); i++)
+            {
+                Image heartImage = new Image()
+                {
+                    Source = new BitmapImage(new Uri("/Resources/heart.png", UriKind.Relative)),
+                    Width = 40,
+                    Height = 40,
+                    Margin = new Thickness(5, 0, 0, 0)
+                };
+                Canvas.SetZIndex(heartImage, 2);
+                heartsPanel.Children.Add(heartImage);
+            }
+            // Set the heart images to be on top of the enemy elements (default z-index is 0)
+            Canvas.SetZIndex(heartsPanel, 50);
         }
         public void SpawnNewArrow()
         {

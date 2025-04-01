@@ -12,8 +12,14 @@ namespace Space_intruders
         public string[] EnemyImageFrames { get; set; }
         public string[] ProjectileImageFrames { get; set; }
         public double ProjectileSpeed { get; set; }
+        private int Points { get; set; }
     }
+    private int CountPoints(int Points)
+    {
+        score += Points;
+        ScoreLabel.Content = score;
 
+    }
     public class Enemies
     {
         private const int EnemyWidth = 50;
@@ -33,6 +39,8 @@ namespace Space_intruders
         private Canvas canvas;
         private Random random = new Random();
         private double loseThreshold = 490;
+        private int score;
+        private Dictionary<int, Image> enemiesPoints = new Dictionary<int, Image>();
         public GameWindow gameWindow;
 
         private EnemyType[] enemyTypes = new EnemyType[]
@@ -40,22 +48,26 @@ namespace Space_intruders
             new EnemyType {
                 EnemyImageFrames = new string[] { "/Resources/wizard/normal/animation1.png", "/Resources/wizard/normal/animation2.png", "/Resources/wizard/normal/animation3.png", "/Resources/wizard/normal/animation4.png" },
                 ProjectileImageFrames = new string[] { "/Resources/wizard/bullet/bullet1.png", "/Resources/wizard/bullet/bullet2.png" },
-                ProjectileSpeed = 7.0
+                ProjectileSpeed = 7.0,
+                Points = 5
             },
             new EnemyType {
                 EnemyImageFrames = new string[] { "/Resources/wizard/normal/animation1.png", "/Resources/wizard/normal/animation2.png", "/Resources/wizard/normal/animation3.png", "/Resources/wizard/normal/animation4.png" },
                 ProjectileImageFrames = new string[] { "/Resources/wizard/bullet/bullet1.png", "/Resources/wizard/bullet/bullet2.png" },
-                ProjectileSpeed = 7.0
+                ProjectileSpeed = 7.0,
+                Points = 10
             },
             new EnemyType {
                 EnemyImageFrames = new string[] { "/Resources/enemy1.png", "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy2.png" },
                 ProjectileImageFrames = new string[] { "/Resources/enemy.png" },
-                ProjectileSpeed = 5.0
+                ProjectileSpeed = 5.0,
+                Points = 15
             },
             new EnemyType {
                 EnemyImageFrames = new string[] { "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy1.png", "/Resources/enemy2.png"  },
                 ProjectileImageFrames = new string[] { "/Resources/ball.png" },
-                ProjectileSpeed = 4.0
+                ProjectileSpeed = 4.0,
+                Points = 20
             },
         };
 
@@ -83,11 +95,11 @@ namespace Space_intruders
                         Source = new BitmapImage(new Uri(enemyType.EnemyImageFrames[0], UriKind.Relative)),
                         Tag = enemyType
                     };
-
                     Canvas.SetLeft(enemy, col * (EnemyWidth + EnemySpacing));
                     Canvas.SetTop(enemy, row * (EnemyHeight + EnemySpacing));
                     canvas.Children.Add(enemy);
                     enemies.Add(enemy);
+                    enemiesPoints[enemies] = enemyType.Points;
                 }
             }
         }
@@ -220,6 +232,7 @@ namespace Space_intruders
             Canvas.SetTop(projectileImage, startY);
             canvas.Children.Add(projectileImage);
 
+
             moveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) }; // projectile speed but you have ProjectileSpeed varriable in EnemyType class
             moveTimer.Tick += MoveProjectile;
             moveTimer.Start();
@@ -251,12 +264,33 @@ namespace Space_intruders
             projectileImage.Source = new BitmapImage(new Uri(frames[frameIndex], UriKind.Relative));
         }
 
+        private void UpdateHearts()
+        {
+            GameWindow gameWindow = (GameWindow)Application.Current.MainWindow;
+            Player player = gameWindow.player;
+
+            gameWindow.heartsPanel.Children.Clear();
+
+            for (int i = 0; i < player.GetHP(); i++)
+            {
+                Image heartImage = new Image
+                {
+                    Source = new BitmapImage(new Uri("/Resources/heart.png", UriKind.Relative)),
+                    Width = 40,
+                    Height = 40,
+                    Margin = new Thickness(5, 0, 0, 0)
+                };
+                gameWindow.heartsPanel.Children.Add(heartImage);
+            }
+        }
+
         private void CheckCollision()
         {
             GameWindow gameWindow = (GameWindow)Application.Current.MainWindow;
+            Player player = gameWindow.player;
+
             double projectileLeft = Canvas.GetLeft(projectileImage);
             double projectileTop = Canvas.GetTop(projectileImage);
-
             double projectileRight = projectileLeft + projectileImage.Width;
             double projectileBottom = projectileTop + projectileImage.Height;
 
@@ -300,7 +334,15 @@ namespace Space_intruders
                 moveTimer.Stop();
                 animationTimer.Stop();
                 canvas.Children.Remove(projectileImage);
-                MessageBox.Show("Uderzył Cię the rock!", "Sus", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                player.SetHP(player.GetHP() - 1);
+                UpdateHearts();
+
+                if (player.GetHP() <= 0)
+                {
+                    MessageBox.Show("Dedło Ci się!", "Wasted", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    Application.Current.Shutdown();
+                }
             }
         }
 

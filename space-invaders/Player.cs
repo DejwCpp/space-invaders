@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Space_intruders
 {
-    class Player
+    public class Player
     {
         private int ID;
         private int HP;
