@@ -24,7 +24,6 @@
                 Canvas.Left="370"
                 Canvas.Top="530"
                 Source="/Resources/stickman.png"/>
-        <Label  x:Name="ScoreLabel"
-                Fontsize="20" />
+        <Label  x:Name="ScoreLabel" />
     </Canvas>
 </Window>

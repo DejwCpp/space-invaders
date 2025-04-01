@@ -12,14 +12,10 @@ namespace Space_intruders
         public string[] EnemyImageFrames { get; set; }
         public string[] ProjectileImageFrames { get; set; }
         public double ProjectileSpeed { get; set; }
-        private int Points { get; set; }
-    }
-    private int CountPoints(int Points)
-    {
-        score += Points;
-        ScoreLabel.Content = score;
+        public int Points { get; set; }
+    };
 
-    }
+
     public class Enemies
     {
         private const int EnemyWidth = 50;
@@ -39,7 +35,7 @@ namespace Space_intruders
         private Canvas canvas;
         private Random random = new Random();
         private double loseThreshold = 490;
-        private int score;
+        public int score;
         private Dictionary<int, Image> enemiesPoints = new Dictionary<int, Image>();
         public GameWindow gameWindow;
 
@@ -71,6 +67,13 @@ namespace Space_intruders
             },
         };
 
+        private void CountPoints(int Points, GameWindow gameWindow)
+        {
+            score += Points;
+            gameWindow.ScoreLabel.Content = score;
+        }
+
+
         public Enemies(Canvas gameCanvas, GameWindow gameWindow)
         {
             canvas = gameCanvas;
@@ -78,6 +81,7 @@ namespace Space_intruders
             StartEnemyMovement();
             StartEnemyShooting();
             StartEnemyAnimation();
+            CountPoints(0, gameWindow);
         }
 
         public void InitializeEnemies()
@@ -99,7 +103,7 @@ namespace Space_intruders
                     Canvas.SetTop(enemy, row * (EnemyHeight + EnemySpacing));
                     canvas.Children.Add(enemy);
                     enemies.Add(enemy);
-                    enemiesPoints[enemies] = enemyType.Points;
+                    //enemiesPoints[enemies] = enemyType.Points;
                 }
             }
         }
