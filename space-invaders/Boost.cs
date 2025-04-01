@@ -1,4 +1,6 @@
-﻿using Space_intruders;
+﻿using System.Windows.Controls;
+using System.Windows.Threading;
+using Space_intruders;
 
 public class Boost
 {
@@ -67,7 +69,7 @@ public class Boost
         {
             moveTimer.Stop();
             canvas.Children.Remove(boostImage);
-            ApplyBoost();
+            //ApplyBoost();
         }
     }
     /*
