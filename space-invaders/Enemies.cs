@@ -14,7 +14,12 @@ namespace Space_intruders
         public double ProjectileSpeed { get; set; }
         private int Points { get; set; }
     }
+    private int CountPoints(int Points)
+    {
+        score += Points;
+        ScoreLabel.Content = score;
 
+    }
     public class Enemies
     {
         private const int EnemyWidth = 50;
@@ -35,7 +40,7 @@ namespace Space_intruders
         private Random random = new Random();
         private double loseThreshold = 490;
         private int score;
-        private Dictionary<int, Enemies> enemiesPoints = new Dictionary<int, Enemies>();
+        private Dictionary<int, Image> enemiesPoints = new Dictionary<int, Image>();
         public GameWindow gameWindow;
 
         private EnemyType[] enemyTypes = new EnemyType[]
@@ -73,7 +78,6 @@ namespace Space_intruders
             StartEnemyMovement();
             StartEnemyShooting();
             StartEnemyAnimation();
-            CountPoints();
         }
 
         public void InitializeEnemies()
@@ -96,7 +100,7 @@ namespace Space_intruders
                     Canvas.SetTop(enemy, row * (EnemyHeight + EnemySpacing));
                     canvas.Children.Add(enemy);
                     enemies.Add(enemy);
-                    enemiesPoints[enemiesPoints] = enemyType.Points;
+                    enemiesPoints[enemies] = enemyType.Points;
                 }
             }
         }
@@ -200,12 +204,6 @@ namespace Space_intruders
 
             enemyFireTimer.Interval = TimeSpan.FromSeconds(random.Next(1, 4));
         }
-        private int CountPoints(int Points)
-        {
-            score += Points;
-            ScoreLabel.Content = $"Score: {score}";
-
-        }
     }
 
     public class EnemyProjectile
@@ -234,6 +232,7 @@ namespace Space_intruders
             Canvas.SetLeft(projectileImage, startX);
             Canvas.SetTop(projectileImage, startY);
             canvas.Children.Add(projectileImage);
+
 
             moveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) }; // projectile speed but you have ProjectileSpeed varriable in EnemyType class
             moveTimer.Tick += MoveProjectile;
