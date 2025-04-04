@@ -47,7 +47,7 @@ namespace Space_intruders
 
         // --- Boosts ---
         private List<Boost> activeBoostsOnScreen = new List<Boost>();
-        private const double BoostSpawnChance = 0.1;
+        private const double BoostSpawnChance = 0.2;
         private const int MaxPlayerHp = 3;
         private int baseShootCooldownMs = 500;
         private int currentShootCooldownMs;

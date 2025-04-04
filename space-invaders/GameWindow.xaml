@@ -6,12 +6,14 @@
         xmlns:local="clr-namespace:Space_intruders"
         mc:Ignorable="d"
         Title="Space Intruders: Medieval Edition - Game" Height="600" Width="800"
-        Background="white">
+        >
+    <Window.Background>
+        <ImageBrush ImageSource="/Resources/game-background.jpg" Stretch="UniformToFill" Opacity="0.5"/>
+    </Window.Background>
 
     <Viewbox Stretch="Uniform">
         <Canvas x:Name="gameCanvas"
-                Width="800" Height="580"
-                Background="#eee">
+                Width="800" Height="580">
 
             <StackPanel x:Name="heartsPanel"
                     Orientation="Horizontal"
@@ -25,7 +27,7 @@
                     Height="30"
                     Canvas.Left="370"
                     Canvas.Top="530"
-                    Source="/Resources/stickman.png"/>
+                    Source="/Resources/archer-player.png"/>
 
         </Canvas>
     </Viewbox>
