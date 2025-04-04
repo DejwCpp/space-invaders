@@ -9,7 +9,6 @@ using System.Diagnostics;
 
 namespace Space_intruders
 {
-    // Defines properties for different enemy types
     public class EnemyType
     {
         public string[] EnemyImageFrames { get; set; }
@@ -18,7 +17,6 @@ namespace Space_intruders
         public int Points { get; set; }
     };
 
-    // Manages enemy collective behavior, movement, shooting
     public class Enemies
     {
         // --- Constants ---
@@ -32,7 +30,7 @@ namespace Space_intruders
         private const int BaseMoveTickDurationMs = 500;
         private const double BaseFireIntervalMin = 1.5;
         private const double BaseFireIntervalMax = 4.0;
-        private const double SlowdownFactor = 4.0; // 4x slower 
+        private const double SlowdownFactor = 2.0;
         private const double LoseThreshold = 490;
 
         // --- State Variables ---
@@ -48,13 +46,10 @@ namespace Space_intruders
         public GameWindow gameWindow;
         private int currentLevel = 1;
         private bool waveCleared = false;
-
-        // Base timings recalculated per level
         private int currentBaseMoveIntervalMs;
         private double currentBaseFireIntervalMin;
         private double currentBaseFireIntervalMax;
 
-        // Enemy type definitions (index 0 = bottom row type)
         private EnemyType[] enemyTypes = new EnemyType[] {
             new EnemyType { EnemyImageFrames = new string[] { "/Resources/enemy1.png", "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy2.png" }, ProjectileImageFrames = new string[] { "/Resources/ball.png" }, ProjectileSpeed = 4.0, Points = 10 },
             new EnemyType { EnemyImageFrames = new string[] { "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy1.png", "/Resources/enemy2.png"  }, ProjectileImageFrames = new string[] { "/Resources/ball.png" }, ProjectileSpeed = 4.5, Points = 15 },
@@ -68,7 +63,6 @@ namespace Space_intruders
             this.gameWindow = gameWindow;
         }
 
-        // Sets up a new wave of enemies
         public void InitializeEnemies()
         {
             waveCleared = false;
@@ -83,7 +77,7 @@ namespace Space_intruders
             int rowsToSpawn = Math.Min(Rows, enemyTypes.Length);
             int colsToSpawn = Columns;
             double totalBlockWidth = colsToSpawn * EnemyWidth + (colsToSpawn - 1) * EnemySpacing;
-            double canvasWidth = canvas.ActualWidth > 0 ? canvas.ActualWidth : 800;
+            double canvasWidth = 800; // Use design width
             double startX = (canvasWidth - totalBlockWidth) / 2;
             if (startX < 0) startX = 5;
             double startY = 50;
@@ -105,7 +99,7 @@ namespace Space_intruders
                         Width = EnemyWidth,
                         Height = EnemyHeight,
                         Source = LoadEnemyImage(enemyType.EnemyImageFrames, 0),
-                        Tag = enemyType // Store type data
+                        Tag = enemyType
                     };
                     Canvas.SetLeft(enemy, startX + col * (EnemyWidth + EnemySpacing));
                     Canvas.SetTop(enemy, startY + row * (EnemyHeight + EnemySpacing));
@@ -122,7 +116,6 @@ namespace Space_intruders
             StartEnemyAnimation();
         }
 
-        // Safely loads an image resource
         private BitmapImage LoadEnemyImage(string[] frames, int frameIndex)
         {
             if (frames == null || frames.Length == 0)
@@ -140,7 +133,6 @@ namespace Space_intruders
             }
         }
 
-        // Calculates base timings based on current level
         private void CalculateBaseTimings()
         {
             currentBaseMoveIntervalMs = Math.Max(100, BaseMoveTickDurationMs - (currentLevel * 25));
@@ -197,14 +189,14 @@ namespace Space_intruders
         public void SlowDownEnemies()
         {
             Debug.WriteLine("Enemies: Received SlowDown command.");
-            StartEnemyMovement(); // Restart timers with new slowed interval
+            StartEnemyMovement();
             StartEnemyShooting();
         }
 
         public void SpeedUpEnemies()
         {
             Debug.WriteLine("Enemies: Received SpeedUp command.");
-            StartEnemyMovement(); // Restart timers with normal interval
+            StartEnemyMovement();
             StartEnemyShooting();
         }
 
@@ -215,8 +207,8 @@ namespace Space_intruders
 
             double leftMost = double.MaxValue, rightMost = double.MinValue, bottomMost = double.MinValue;
             foreach (var enemy in enemies.ToList())
-            { // ToList for safe removal if needed
-                if (canvas == null || !canvas.Children.Contains(enemy)) { enemies.Remove(enemy); enemyData.Remove(enemy); continue; } // Added canvas null check
+            {
+                if (canvas == null || !canvas.Children.Contains(enemy)) { enemies.Remove(enemy); enemyData.Remove(enemy); continue; }
                 double currentLeft = Canvas.GetLeft(enemy); double currentTop = Canvas.GetTop(enemy);
                 leftMost = Math.Min(leftMost, currentLeft);
                 rightMost = Math.Max(rightMost, currentLeft + EnemyWidth);
@@ -231,13 +223,12 @@ namespace Space_intruders
 
             bool moveDown = false;
             int moveDistance = BaseMoveDistance;
-            double canvasWidth = canvas.ActualWidth > 0 ? canvas.ActualWidth : 800;
+            double canvasWidth = 800; // Use design width
             if (movingRight && rightMost + moveDistance >= canvasWidth) { movingRight = false; moveDown = true; }
             else if (!movingRight && leftMost - moveDistance <= 0) { movingRight = true; moveDown = true; }
 
             foreach (var enemy in enemies)
             {
-                // Check canvas and enemy presence again before moving
                 if (canvas == null || !canvas.Children.Contains(enemy)) continue;
                 if (moveDown) { Canvas.SetTop(enemy, Canvas.GetTop(enemy) + BaseMoveDownDistance); }
                 else { Canvas.SetLeft(enemy, Canvas.GetLeft(enemy) + (movingRight ? moveDistance : -moveDistance)); }
@@ -246,7 +237,7 @@ namespace Space_intruders
 
         private void AnimateEnemies(object sender, EventArgs e)
         {
-            enemyFrameIndex = (enemyFrameIndex + 1) % 4; // Assumes max 4 frames
+            enemyFrameIndex = (enemyFrameIndex + 1) % 4;
             foreach (var enemy in enemies)
             {
                 if (enemyData.TryGetValue(enemy, out EnemyType enemyType))
@@ -263,11 +254,10 @@ namespace Space_intruders
 
         private void EnemyShoot(object sender, EventArgs e)
         {
-            if (enemies.Count == 0 || waveCleared || enemyFireTimer == null || canvas == null) return; // Added canvas null check
+            if (enemies.Count == 0 || waveCleared || enemyFireTimer == null || canvas == null) return;
             int shootingEnemyIndex = random.Next(enemies.Count);
             Image shootingEnemy = enemies[shootingEnemyIndex];
 
-            // Added canvas null check
             if (canvas == null || !canvas.Children.Contains(shootingEnemy) || !enemyData.ContainsKey(shootingEnemy))
             {
                 Debug.WriteLine("Skipping shot: Selected enemy no longer valid."); ResetFireTimerInterval(); return;
@@ -286,7 +276,6 @@ namespace Space_intruders
             }
         }
 
-        // Sets the interval for the next enemy shot
         private void ResetFireTimerInterval()
         {
             if (enemyFireTimer == null) return;
@@ -297,10 +286,8 @@ namespace Space_intruders
             enemyFireTimer.Interval = TimeSpan.FromSeconds(random.NextDouble() * (fireMax - fireMin) + fireMin);
         }
 
-        // Handles enemy being hit by player arrow
         public void EnemyHit(Image enemy)
         {
-            // Added null check for canvas
             if (enemy != null && enemies.Contains(enemy) && canvas != null)
             {
                 double enemyX = Canvas.GetLeft(enemy) + enemy.Width / 2.0;
@@ -310,12 +297,10 @@ namespace Space_intruders
 
                 enemies.Remove(enemy);
                 enemyData.Remove(enemy);
-                // Check canvas contains before removing
                 if (canvas.Children.Contains(enemy)) canvas.Children.Remove(enemy);
 
-                // *** ADDED DEBUG LINE ***
                 Debug.WriteLine($"EnemyHit: Enemy destroyed at ({enemyX:F0}, {enemyY:F0}). Attempting to call TrySpawnBoost.");
-                gameWindow?.TrySpawnBoost(enemyX, enemyY); // Attempt boost spawn
+                gameWindow?.TrySpawnBoost(enemyX, enemyY);
 
                 CheckWaveCleared();
             }
@@ -325,7 +310,6 @@ namespace Space_intruders
             }
         }
 
-        // Checks if wave is cleared and starts next level
         private void CheckWaveCleared()
         {
             if (!waveCleared && enemies.Count == 0 && canvas != null)
@@ -333,12 +317,10 @@ namespace Space_intruders
                 waveCleared = true; Debug.WriteLine($"Wave {currentLevel} cleared!");
                 StopTimers();
                 currentLevel++; Debug.WriteLine($"--- Starting Level {currentLevel} ---");
-                InitializeEnemies(); // This recalculates timings and restarts timers
+                InitializeEnemies();
             }
         }
-    } // End of Enemies class
-
-    // ========================================================================
+    }
 
     // Represents a projectile fired by an enemy
     public class EnemyProjectile
@@ -361,7 +343,6 @@ namespace Space_intruders
             projectileImage = new Image { Width = 20, Height = 20, Source = LoadProjectileImage(0) };
             if (projectileImage.Source == null) { Debug.WriteLine("Error loading projectile image."); return; }
 
-            // Add check for canvas null before adding children
             if (canvas == null)
             {
                 Debug.WriteLine("Error: Cannot add projectile, canvas is null."); return;
@@ -369,7 +350,6 @@ namespace Space_intruders
 
             Canvas.SetLeft(projectileImage, startX); Canvas.SetTop(projectileImage, startY);
             canvas.Children.Add(projectileImage); Canvas.SetZIndex(projectileImage, 1);
-            // Tag the image for potential identification during cleanup
             projectileImage.Tag = this;
 
             moveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(30) };
@@ -389,13 +369,12 @@ namespace Space_intruders
             catch (Exception ex) { Debug.WriteLine($"Failed to load projectile frame {frames[index]}: {ex.Message}"); return null; }
         }
 
-        // Moves projectile and checks collisions
         private void MoveProjectile(object sender, EventArgs e)
         {
             if (projectileImage == null || canvas == null || !canvas.Children.Contains(projectileImage)) { Cleanup(); return; }
             double currentTop = Canvas.GetTop(projectileImage);
-            double canvasHeight = canvas.ActualHeight > 0 ? canvas.ActualHeight : ((FrameworkElement)canvas.Parent)?.ActualHeight ?? 600;
-            if (currentTop >= canvasHeight) { Cleanup(); } // Off screen
+            double canvasHeight = 580; // Use design height
+            if (currentTop >= canvasHeight) { Cleanup(); }
             else { Canvas.SetTop(projectileImage, currentTop + speed); CheckCollision(); }
         }
 
@@ -411,7 +390,6 @@ namespace Space_intruders
             else { projectileImage.Source = nextFrame; }
         }
 
-        // Checks for collisions with shields and player (considering armor)
         private void CheckCollision()
         {
             if (projectileImage == null || canvas == null || !canvas.Children.Contains(projectileImage) || gameWindow == null)
@@ -421,12 +399,10 @@ namespace Space_intruders
 
             Rect projectileRect = new Rect(Canvas.GetLeft(projectileImage), Canvas.GetTop(projectileImage), projectileImage.Width, projectileImage.Height);
 
-            // Check Shield Collisions
             foreach (var shield in gameWindow.shields.ToList())
             {
                 if (shield.GetDurability() <= 0) continue;
                 Image shieldImg = shield.GetImage();
-                // Added null check for canvas
                 if (shieldImg == null || canvas == null || !canvas.Children.Contains(shieldImg)) continue;
                 Rect shieldRect = new Rect(Canvas.GetLeft(shieldImg), Canvas.GetTop(shieldImg), shieldImg.Width, shieldImg.Height);
                 if (projectileRect.IntersectsWith(shieldRect))
@@ -435,16 +411,14 @@ namespace Space_intruders
                 }
             }
 
-            // Check Player Collision
             Image playerImage = gameWindow.playerImage;
-            // Added null check for canvas
             if (playerImage != null && canvas != null && canvas.Children.Contains(playerImage))
             {
                 Rect playerRect = new Rect(Canvas.GetLeft(playerImage), Canvas.GetTop(playerImage), playerImage.Width, playerImage.Height);
                 if (projectileRect.IntersectsWith(playerRect))
                 {
                     if (gameWindow.isArmorActive)
-                    { // Armor Check
+                    {
                         Debug.WriteLine("Player hit, but Armor absorbed the hit!");
                     }
                     else
@@ -464,7 +438,6 @@ namespace Space_intruders
             }
         }
 
-        // Cleans up the projectile's resources
         private void Cleanup()
         {
             moveTimer?.Stop(); animationTimer?.Stop();
@@ -475,5 +448,5 @@ namespace Space_intruders
             }
             projectileImage = null; gameWindow = null; canvas = null;
         }
-    } 
-} 
+    }
+}

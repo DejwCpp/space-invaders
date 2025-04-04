@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,7 +10,6 @@ namespace Space_intruders
 {
     public class Boost
     {
-        // Defines the available boost types
         public enum BoostType
         {
             FasterShooting,
@@ -28,12 +27,11 @@ namespace Space_intruders
         private static readonly double MoveSpeed = 3.0;
         private static readonly int BoostSize = 30;
 
-        // Maps BoostType to its corresponding image resource path
         private static readonly Dictionary<BoostType, string> BoostImagePaths = new Dictionary<BoostType, string>
         {
-            { BoostType.FasterShooting, "/Resources/boost_fastshoot.png" }, // icon to do
-            { BoostType.HealthRegen,    "/Resources/boost_health.png" }, // icon to do
-            { BoostType.TemporaryArmor, "/Resources/boost_armor.png" }, // icon to do
+            { BoostType.FasterShooting, "/Resources/boost_fastshoot.png" },
+            { BoostType.HealthRegen,    "/Resources/boost_health.png" },
+            { BoostType.TemporaryArmor, "/Resources/boost_armor.png" },
             { BoostType.SlowEnemies,    "/Resources/boost_slow.png" }
         };
 
@@ -46,7 +44,7 @@ namespace Space_intruders
             if (!BoostImagePaths.TryGetValue(Type, out string imagePath))
             {
                 Debug.WriteLine($"Warning: No image path defined for BoostType.{Type}. Using default.");
-                imagePath = BoostImagePaths[BoostType.FasterShooting]; // Fallback
+                imagePath = BoostImagePaths[BoostType.FasterShooting];
             }
 
             try
@@ -58,12 +56,11 @@ namespace Space_intruders
                     Source = new BitmapImage(new Uri(imagePath, UriKind.Relative))
                 };
 
-                // Add canvas null check before adding child
                 if (canvas == null)
                 {
                     Debug.WriteLine($"Error: Cannot add boost image {Type}, canvas is null.");
-                    BoostImage = null; // Prevent further use
-                    Cleanup(); // Attempt cleanup
+                    BoostImage = null;
+                    Cleanup();
                     return;
                 }
 
@@ -78,15 +75,12 @@ namespace Space_intruders
             }
             catch (Exception ex)
             {
-                // This catch block is crucial for image loading errors
                 Debug.WriteLine($"Error creating boost image for {Type}: {ex.Message}");
-                // Indicate failure by setting BoostImage to null if not already caught
                 BoostImage = null;
-                Cleanup(); // Ensure partial cleanup if creation fails
+                Cleanup();
             }
         }
 
-        // Moves the boost downwards and checks for collisions
         private void MoveBoost(object sender, EventArgs e)
         {
             if (BoostImage == null || canvas == null || !canvas.Children.Contains(BoostImage))
@@ -97,10 +91,9 @@ namespace Space_intruders
             double currentTop = Canvas.GetTop(BoostImage);
             double newTop = currentTop + MoveSpeed;
 
-            // Added canvas null check
-            if (canvas == null || newTop >= canvas.ActualHeight)
+            if (canvas == null || newTop >= 580) // Use design height
             {
-                Cleanup(); // Off screen or canvas gone
+                Cleanup();
             }
             else
             {
@@ -109,7 +102,6 @@ namespace Space_intruders
             }
         }
 
-        // Checks for collision between the boost and the player
         private void CheckCollision()
         {
             if (BoostImage == null || gameWindow?.playerImage == null || canvas == null || !canvas.Children.Contains(gameWindow.playerImage))
@@ -122,12 +114,11 @@ namespace Space_intruders
 
             if (boostRect.IntersectsWith(playerRect))
             {
-                gameWindow.ActivateBoost(this.Type); // Apply effect
-                Cleanup(); // Remove boost visual
+                gameWindow.ActivateBoost(this.Type);
+                Cleanup();
             }
         }
 
-        // Stops timers and removes the boost image from the canvas
         public void Cleanup()
         {
             moveTimer?.Stop();
@@ -139,7 +130,7 @@ namespace Space_intruders
             }
             BoostImage = null;
             canvas = null;
-            gameWindow = null; // Break references
+            gameWindow = null;
         }
     }
 }
