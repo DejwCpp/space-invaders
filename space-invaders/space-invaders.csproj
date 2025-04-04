@@ -12,6 +12,9 @@
   <ItemGroup>
     <None Remove="Resources\arrow.png" />
     <None Remove="Resources\ball.png" />
+    <None Remove="Resources\boost_armor.png" />
+    <None Remove="Resources\boost_fastshoot.png" />
+    <None Remove="Resources\boost_health.png" />
     <None Remove="Resources\boost_slow.png" />
     <None Remove="Resources\coin.png" />
     <None Remove="Resources\enemy.png" />
@@ -53,6 +56,9 @@
     <Resource Include="Resources\ball.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Resources\boost_armor.png" />
+    <Resource Include="Resources\boost_fastshoot.png" />
+    <Resource Include="Resources\boost_health.png" />
     <Resource Include="Resources\boost_slow.png" />
     <Resource Include="Resources\coin.png" />
     <Resource Include="Resources\enemy.png" />

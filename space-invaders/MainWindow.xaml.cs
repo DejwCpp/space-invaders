@@ -10,8 +10,15 @@ namespace Space_intruders
             StartButton.Click += (s, e) => {
                 GameWindow gameWindow = new GameWindow();
                 gameWindow.Show();
-                this.Close(); // Close the MainWindow
+                this.Close();
             };
+        }
+
+        private void LeaderboardButton_Click(object sender, RoutedEventArgs e)
+        {
+            LeaderboardWindow leaderboard = new LeaderboardWindow();
+            leaderboard.Owner = this; // Set owner so it stays on top
+            leaderboard.ShowDialog();
         }
     }
 }
