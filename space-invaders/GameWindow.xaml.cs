@@ -28,9 +28,7 @@ namespace Space_intruders
 
         // --- Boost Related Variables ---
         private List<Boost> activeBoostsOnScreen = new List<Boost>();
-        private const double BoostSpawnChance = 0.10; // 10% chance for a boost to drop on enemy death
-        // *** FOR TESTING: Temporarily set to 1.0 (100%) ***
-        // private const double BoostSpawnChance = 1.0;
+        private const double BoostSpawnChance = 0.10;
         private const int MaxPlayerHp = 5;
 
         // Faster Shooting Boost State
@@ -41,13 +39,13 @@ namespace Space_intruders
         private const int FasterShootCooldownMs = 150;
 
         // Temporary Armor Boost State
-        public bool isArmorActive { get; private set; } = false; // Public for EnemyProjectile collision check
+        public bool isArmorActive { get; private set; } = false;
         private DispatcherTimer armorTimer;
         private const int ArmorDurationSeconds = 8;
-        private Image armorIndicator; // Optional visual feedback
+        private Image armorIndicator;
 
         // Slow Enemies Boost State
-        public bool areEnemiesSlowed { get; private set; } = false; // Public for Enemies class speed adjustment
+        public bool areEnemiesSlowed { get; private set; } = false;
         private DispatcherTimer slowEnemiesTimer;
         private const int SlowEnemiesDurationSeconds = 12;
 
@@ -93,36 +91,24 @@ namespace Space_intruders
         // --- Boost Spawning ---
         public void TrySpawnBoost(double x, double y)
         {
-            // Check if the random chance is met
             if (random.NextDouble() < BoostSpawnChance)
             {
-                // *** ADDED DEBUG LINE ***
                 Debug.WriteLine($"TrySpawnBoost: Chance met. Attempting to determine boost type at ({x:F0}, {y:F0}).");
-
                 Array boostTypes = Enum.GetValues(typeof(Boost.BoostType));
                 Boost.BoostType randomType = (Boost.BoostType)boostTypes.GetValue(random.Next(boostTypes.Length));
-
-                // *** ADDED DEBUG LINE ***
                 Debug.WriteLine($"TrySpawnBoost: Determined type: {randomType}. Creating Boost object...");
 
                 Boost newBoost = new Boost(gameCanvas, x, y, randomType, this);
-                if (newBoost.BoostImage != null) // Check if boost constructor succeeded (image loaded etc.)
+                if (newBoost.BoostImage != null)
                 {
                     activeBoostsOnScreen.Add(newBoost);
-                    // This confirms the boost object was created and added
                     Debug.WriteLine($"TrySpawnBoost: Successfully created and added boost: {randomType}.");
                 }
                 else
                 {
-                    // This indicates the Boost constructor failed (likely image loading)
                     Debug.WriteLine($"TrySpawnBoost: Failed to create Boost object for type {randomType}. BoostImage was null.");
                 }
             }
-            // (Optional) Add an else block here if you want to see when the chance is *not* met
-            // else
-            // {
-            //     Debug.WriteLine($"TrySpawnBoost: Chance {BoostSpawnChance:P0} not met.");
-            // }
         }
 
         // --- Boost Activation ---
@@ -139,7 +125,6 @@ namespace Space_intruders
         }
 
         // --- Individual Boost Logic & Timers ---
-
         private void ApplyFasterShooting()
         {
             currentShootCooldownMs = FasterShootCooldownMs;
@@ -166,7 +151,7 @@ namespace Space_intruders
             else
             {
                 Debug.WriteLine("Health boost collected, but HP already full.");
-                AddScore(25); // Give points instead
+                AddScore(25);
             }
         }
 
@@ -235,7 +220,7 @@ namespace Space_intruders
             if (!areEnemiesSlowed)
             {
                 areEnemiesSlowed = true;
-                enemies?.SlowDownEnemies(); // Notify Enemies class
+                enemies?.SlowDownEnemies();
             }
             slowEnemiesTimer.Stop();
             slowEnemiesTimer.Start();
@@ -248,13 +233,12 @@ namespace Space_intruders
             if (areEnemiesSlowed)
             {
                 areEnemiesSlowed = false;
-                enemies?.SpeedUpEnemies(); // Notify Enemies class
+                enemies?.SpeedUpEnemies();
                 Debug.WriteLine("Enemy slow expired.");
             }
         }
 
         // --- UI Update & Player Control ---
-
         private void InitializeHeartImages()
         {
             heartsPanel.Children.Clear();
@@ -274,13 +258,12 @@ namespace Space_intruders
             Canvas.SetZIndex(heartsPanel, 50);
         }
 
-        // Handles player movement and shooting input
         public async void PlayerMovement(object sender, KeyEventArgs e)
         {
             if (playerImage == null) return;
 
             double playerWidth = playerImage.Width;
-            double canvasWidth = gameCanvas.ActualWidth > 0 ? gameCanvas.ActualWidth : 800;
+            double canvasWidth = 800; // Use design width
             double playerLeft = Canvas.GetLeft(playerImage);
             double playerTop = Canvas.GetTop(playerImage);
 
@@ -307,13 +290,12 @@ namespace Space_intruders
                     {
                         canShoot = false;
                         SpawnNewArrow();
-                        await Task.Delay(currentShootCooldownMs); // Use dynamic cooldown
+                        await Task.Delay(currentShootCooldownMs);
                         canShoot = true;
                     }
                     break;
             }
 
-            // Update armor indicator position
             if (armorIndicator != null && armorIndicator.Visibility == Visibility.Visible)
             {
                 Canvas.SetLeft(armorIndicator, playerLeft - 5);
@@ -329,9 +311,8 @@ namespace Space_intruders
         // --- Game Over Handling ---
         public void GameOver(bool won = false)
         {
-            this.PreviewKeyDown -= PlayerMovement; // Stop player input
+            this.PreviewKeyDown -= PlayerMovement;
 
-            // Stop all active timers
             fasterShootingTimer?.Stop();
             armorTimer?.Stop();
             slowEnemiesTimer?.Stop();
@@ -339,20 +320,17 @@ namespace Space_intruders
             foreach (var arrow in arrows.Values.ToList()) arrow.StopTimer();
             arrows.Clear();
 
-            // Cleanup visuals on UI thread
             Dispatcher.Invoke(() => {
                 foreach (var boost in activeBoostsOnScreen.ToList()) boost.Cleanup();
                 activeBoostsOnScreen.Clear();
 
-                // Remove lingering visuals
                 foreach (var arrowImg in gameCanvas.Children.OfType<Image>().Where(img => img.Tag is Arrow).ToList())
                     gameCanvas.Children.Remove(arrowImg);
-                foreach (var projImg in gameCanvas.Children.OfType<Image>().Where(img => img.Tag is EnemyProjectile).ToList()) // Requires Tagging projectiles
+                foreach (var projImg in gameCanvas.Children.OfType<Image>().Where(img => img.Tag is EnemyProjectile).ToList())
                     gameCanvas.Children.Remove(projImg);
                 foreach (var enemyImg in enemies?.enemies.ToList() ?? new List<Image>())
                     if (gameCanvas.Children.Contains(enemyImg)) gameCanvas.Children.Remove(enemyImg);
 
-                // Display Game Over/Win message
                 Label gameOverLabel = new Label
                 {
                     Content = won ? "YOU WIN!" : "GAME OVER",
@@ -363,8 +341,8 @@ namespace Space_intruders
                     VerticalAlignment = VerticalAlignment.Center
                 };
                 double labelWidthEstimate = 350; double labelHeightEstimate = 80;
-                Canvas.SetLeft(gameOverLabel, (gameCanvas.ActualWidth - labelWidthEstimate) / 2);
-                Canvas.SetTop(gameOverLabel, (gameCanvas.ActualHeight - labelHeightEstimate) / 2);
+                Canvas.SetLeft(gameOverLabel, (800 - labelWidthEstimate) / 2); // Use design width
+                Canvas.SetTop(gameOverLabel, (580 - labelHeightEstimate) / 2); // Use design height
                 Canvas.SetZIndex(gameOverLabel, 100);
 
                 if (!gameCanvas.Children.OfType<Label>().Any(lbl => lbl.Content.ToString().Contains("GAME OVER") || lbl.Content.ToString().Contains("YOU WIN")))
@@ -397,7 +375,7 @@ namespace Space_intruders
                     Source = imageSource,
                     Width = 30,
                     Height = 30,
-                    Tag = arrow // Tag Image for easier cleanup in GameOver
+                    Tag = arrow
                 };
 
                 double playerTop = Canvas.GetTop(playerImage);
@@ -463,7 +441,7 @@ namespace Space_intruders
         {
             Dispatcher.Invoke(() => {
                 ScoreLabel.Content = $"Score: {currentScore}";
-                Canvas.SetLeft(ScoreLabel, (gameCanvas.ActualWidth > 0 ? gameCanvas.ActualWidth : 800) - 150);
+                Canvas.SetLeft(ScoreLabel, 800 - 150); // Use design width
                 Canvas.SetTop(ScoreLabel, 10);
                 ScoreLabel.FontSize = 16;
                 ScoreLabel.Foreground = Brushes.White;
