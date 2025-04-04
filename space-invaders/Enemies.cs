@@ -9,14 +9,17 @@ using System.Diagnostics;
 
 namespace Space_intruders
 {
+    // Defines properties for different enemy types
     public class EnemyType
     {
         public string[] EnemyImageFrames { get; set; }
         public string[] ProjectileImageFrames { get; set; }
         public double ProjectileSpeed { get; set; }
         public int Points { get; set; }
+        public int Damage { get; set; } // ADDED: Damage dealt by projectile
     };
 
+    // Manages enemy collective behavior, movement, shooting
     public class Enemies
     {
         // --- Constants ---
@@ -28,8 +31,12 @@ namespace Space_intruders
         private const int BaseMoveDistance = 10;
         private const int BaseMoveDownDistance = 15;
         private const int BaseMoveTickDurationMs = 500;
-        private const double BaseFireIntervalMin = 1.5;
-        private const double BaseFireIntervalMax = 4.0;
+        private const double BaseFireIntervalMin = 1.5; // Base minimum seconds between shots
+        private const double BaseFireIntervalMax = 4.0; // Base maximum seconds between shots
+        private const int MoveIntervalReductionPerLevelMs = 25; // How much move interval decreases per level
+        private const int FireIntervalReductionPerLevelMs = 50; // How much fire interval decreases per level (example, faster than move)
+        private const int MinFireIntervalMinMs = 400; // Absolute minimum for the faster firing interval
+        private const int MinFireIntervalMaxMs = 800; // Absolute minimum for the slower firing interval
         private const double SlowdownFactor = 2.0;
         private const double LoseThreshold = 490;
 
@@ -50,11 +57,28 @@ namespace Space_intruders
         private double currentBaseFireIntervalMin;
         private double currentBaseFireIntervalMax;
 
+        // Enemy type definitions (index 0 = bottom row type)
         private EnemyType[] enemyTypes = new EnemyType[] {
-            new EnemyType { EnemyImageFrames = new string[] { "/Resources/enemy1.png", "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy2.png" }, ProjectileImageFrames = new string[] { "/Resources/ball.png" }, ProjectileSpeed = 4.0, Points = 10 },
-            new EnemyType { EnemyImageFrames = new string[] { "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy1.png", "/Resources/enemy2.png"  }, ProjectileImageFrames = new string[] { "/Resources/ball.png" }, ProjectileSpeed = 4.5, Points = 15 },
-            new EnemyType { EnemyImageFrames = new string[] { "/Resources/wizard/normal/animation1.png", "/Resources/wizard/normal/animation2.png", "/Resources/wizard/normal/animation3.png", "/Resources/wizard/normal/animation4.png" }, ProjectileImageFrames = new string[] { "/Resources/wizard/bullet/bullet1.png", "/Resources/wizard/bullet/bullet2.png" }, ProjectileSpeed = 5.0, Points = 20 },
-            new EnemyType { EnemyImageFrames = new string[] { "/Resources/wizard/normal/animation1.png", "/Resources/wizard/normal/animation2.png", "/Resources/wizard/normal/animation3.png", "/Resources/wizard/normal/animation4.png" }, ProjectileImageFrames = new string[] { "/Resources/wizard/bullet/bullet1.png", "/Resources/wizard/bullet/bullet2.png" }, ProjectileSpeed = 5.5, Points = 25 },
+            // Type 0 (Basic enemy)
+            new EnemyType {
+                EnemyImageFrames = new string[] { "/Resources/enemy1.png", "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy2.png" },
+                ProjectileImageFrames = new string[] { "/Resources/ball.png" }, ProjectileSpeed = 4.0, Points = 10, Damage = 1 // ADDED Damage
+            },
+            // Type 1 (Slightly stronger basic)
+            new EnemyType {
+                EnemyImageFrames = new string[] { "/Resources/enemy2.png", "/Resources/enemy1.png", "/Resources/enemy1.png", "/Resources/enemy2.png"  },
+                ProjectileImageFrames = new string[] { "/Resources/ball.png" }, ProjectileSpeed = 4.5, Points = 15, Damage = 1 // ADDED Damage
+            },
+            // Type 2 (Wizard - More Damage)
+            new EnemyType {
+                EnemyImageFrames = new string[] { "/Resources/wizard/normal/animation1.png", "/Resources/wizard/normal/animation2.png", "/Resources/wizard/normal/animation3.png", "/Resources/wizard/normal/animation4.png" },
+                ProjectileImageFrames = new string[] { "/Resources/wizard/bullet/bullet1.png", "/Resources/wizard/bullet/bullet2.png" }, ProjectileSpeed = 5.0, Points = 20, Damage = 2 // << WIZARD DAMAGE
+            },
+            // Type 3 (Stronger Wizard - More Damage)
+            new EnemyType {
+                 EnemyImageFrames = new string[] { "/Resources/wizard/normal/animation1.png", "/Resources/wizard/normal/animation2.png", "/Resources/wizard/normal/animation3.png", "/Resources/wizard/normal/animation4.png" },
+                ProjectileImageFrames = new string[] { "/Resources/wizard/bullet/bullet1.png", "/Resources/wizard/bullet/bullet2.png" }, ProjectileSpeed = 5.5, Points = 25, Damage = 2 // << WIZARD DAMAGE
+            },
         };
 
         public Enemies(Canvas gameCanvas, GameWindow gameWindow)
@@ -63,6 +87,7 @@ namespace Space_intruders
             this.gameWindow = gameWindow;
         }
 
+        // Sets up a new wave of enemies
         public void InitializeEnemies()
         {
             waveCleared = false;
@@ -133,15 +158,37 @@ namespace Space_intruders
             }
         }
 
+        // Calculates base timings based on current level
         private void CalculateBaseTimings()
         {
-            currentBaseMoveIntervalMs = Math.Max(100, BaseMoveTickDurationMs - (currentLevel * 25));
-            currentBaseFireIntervalMin = Math.Max(0.5, BaseFireIntervalMin - (currentLevel * 0.1));
-            currentBaseFireIntervalMax = Math.Max(1.0, BaseFireIntervalMax - (currentLevel * 0.2));
+            // Movement Speed Scaling
+            int moveReductionMs = (currentLevel - 1) * MoveIntervalReductionPerLevelMs; // No reduction for level 1
+            currentBaseMoveIntervalMs = Math.Max(100, BaseMoveTickDurationMs - moveReductionMs); // Min 100ms interval
+
+            // Firing Speed Scaling (using milliseconds for calculation)
+            int fireReductionMs = (currentLevel - 1) * FireIntervalReductionPerLevelMs; // No reduction for level 1
+            double baseFireIntervalMinMs = BaseFireIntervalMin * 1000;
+            double baseFireIntervalMaxMs = BaseFireIntervalMax * 1000;
+
+            double scaledFireMinMs = Math.Max(MinFireIntervalMinMs, baseFireIntervalMinMs - fireReductionMs);
+            double scaledFireMaxMs = Math.Max(MinFireIntervalMaxMs, baseFireIntervalMaxMs - fireReductionMs);
+
+            // Convert back to seconds for storage
+            currentBaseFireIntervalMin = scaledFireMinMs / 1000.0;
+            currentBaseFireIntervalMax = scaledFireMaxMs / 1000.0;
+
+            // Ensure min interval is strictly less than max, even after scaling and capping
             if (currentBaseFireIntervalMin >= currentBaseFireIntervalMax)
-                currentBaseFireIntervalMin = currentBaseFireIntervalMax - 0.1;
-            Debug.WriteLine($"Level {currentLevel} Base Timings - Move: {currentBaseMoveIntervalMs}ms, Fire: {currentBaseFireIntervalMin:F1}s - {currentBaseFireIntervalMax:F1}s");
+            {
+                // If min hits cap and max becomes equal or less, adjust max slightly
+                currentBaseFireIntervalMax = currentBaseFireIntervalMin + 0.2; // Ensure max is always a bit higher than min
+                // Or adjust min slightly lower if possible:
+                // currentBaseFireIntervalMin = Math.Max(MinFireIntervalMinMs / 1000.0, currentBaseFireIntervalMax - 0.1);
+            }
+
+            Debug.WriteLine($"Level {currentLevel} Timings - Move Interval: {currentBaseMoveIntervalMs}ms, Fire Interval: {currentBaseFireIntervalMin:F2}s - {currentBaseFireIntervalMax:F2}s");
         }
+
 
         // --- Timer Management ---
         private void StartEnemyMovement()
@@ -159,13 +206,25 @@ namespace Space_intruders
             StopTimer(enemyFireTimer);
             double fireMin = gameWindow.areEnemiesSlowed ? currentBaseFireIntervalMin * SlowdownFactor : currentBaseFireIntervalMin;
             double fireMax = gameWindow.areEnemiesSlowed ? currentBaseFireIntervalMax * SlowdownFactor : currentBaseFireIntervalMax;
-            if (fireMin >= fireMax) fireMin = fireMax - 0.1;
-            Debug.WriteLine($"Starting Shooting Timer - Interval: {fireMin:F1}s - {fireMax:F1}s (Slowed: {gameWindow.areEnemiesSlowed})");
+            // Ensure min < max after slowdown factor
+            if (fireMin >= fireMax) fireMin = Math.Max(0.1, fireMax - 0.1); // Ensure min is slightly less than max, but not negative
+
+            Debug.WriteLine($"Starting Shooting Timer - Interval: {fireMin:F2}s - {fireMax:F2}s (Slowed: {gameWindow.areEnemiesSlowed})");
             enemyFireTimer = new DispatcherTimer();
-            enemyFireTimer.Interval = TimeSpan.FromSeconds(random.NextDouble() * (fireMax - fireMin) + fireMin);
+            // Handle potential case where fireMin and fireMax are extremely close or equal after capping/scaling
+            if (fireMax <= fireMin)
+            {
+                enemyFireTimer.Interval = TimeSpan.FromSeconds(fireMin); // Use fixed min interval if max isn't greater
+                Debug.WriteLine($"Warning: Fire Max interval ({fireMax:F2}s) not greater than Min interval ({fireMin:F2}s). Using fixed Min interval.");
+            }
+            else
+            {
+                enemyFireTimer.Interval = TimeSpan.FromSeconds(random.NextDouble() * (fireMax - fireMin) + fireMin);
+            }
             enemyFireTimer.Tick += EnemyShoot;
             enemyFireTimer.Start();
         }
+
 
         private void StartEnemyAnimation()
         {
@@ -223,7 +282,7 @@ namespace Space_intruders
 
             bool moveDown = false;
             int moveDistance = BaseMoveDistance;
-            double canvasWidth = 800; // Use design width
+            double canvasWidth = 800;
             if (movingRight && rightMost + moveDistance >= canvasWidth) { movingRight = false; moveDown = true; }
             else if (!movingRight && leftMost - moveDistance <= 0) { movingRight = true; moveDown = true; }
 
@@ -267,7 +326,8 @@ namespace Space_intruders
             {
                 double enemyX = Canvas.GetLeft(shootingEnemy) + (EnemyWidth / 2.0) - 10;
                 double enemyY = Canvas.GetTop(shootingEnemy) + EnemyHeight;
-                new EnemyProjectile(canvas, enemyX, enemyY, enemyType.ProjectileSpeed, enemyType.ProjectileImageFrames, gameWindow);
+                // Pass damage value to projectile constructor
+                new EnemyProjectile(canvas, enemyX, enemyY, enemyType.ProjectileSpeed, enemyType.ProjectileImageFrames, enemyType.Damage, gameWindow);
                 ResetFireTimerInterval();
             }
             else
@@ -276,14 +336,25 @@ namespace Space_intruders
             }
         }
 
+        // Sets the interval for the next enemy shot based on current level/slowdown
         private void ResetFireTimerInterval()
         {
             if (enemyFireTimer == null) return;
-            double fireMinBase = currentBaseFireIntervalMin; double fireMaxBase = currentBaseFireIntervalMax;
-            double fireMin = gameWindow.areEnemiesSlowed ? fireMinBase * SlowdownFactor : fireMinBase;
-            double fireMax = gameWindow.areEnemiesSlowed ? fireMaxBase * SlowdownFactor : fireMaxBase;
-            if (fireMin >= fireMax) fireMin = fireMax - 0.1;
-            enemyFireTimer.Interval = TimeSpan.FromSeconds(random.NextDouble() * (fireMax - fireMin) + fireMin);
+            double fireMin = gameWindow.areEnemiesSlowed ? currentBaseFireIntervalMin * SlowdownFactor : currentBaseFireIntervalMin;
+            double fireMax = gameWindow.areEnemiesSlowed ? currentBaseFireIntervalMax * SlowdownFactor : currentBaseFireIntervalMax;
+
+            // Ensure min < max after potential slowdown/scaling
+            if (fireMin >= fireMax) fireMin = Math.Max(0.1, fireMax - 0.1);
+
+            // Handle potential case where fireMin and fireMax are extremely close or equal after capping/scaling
+            if (fireMax <= fireMin)
+            {
+                enemyFireTimer.Interval = TimeSpan.FromSeconds(fireMin);
+            }
+            else
+            {
+                enemyFireTimer.Interval = TimeSpan.FromSeconds(random.NextDouble() * (fireMax - fireMin) + fireMin);
+            }
         }
 
         public void EnemyHit(Image enemy)
@@ -317,10 +388,12 @@ namespace Space_intruders
                 waveCleared = true; Debug.WriteLine($"Wave {currentLevel} cleared!");
                 StopTimers();
                 currentLevel++; Debug.WriteLine($"--- Starting Level {currentLevel} ---");
-                InitializeEnemies();
+                InitializeEnemies(); // Recalculates timings for new level
             }
         }
-    }
+    } // End of Enemies class
+
+    // ========================================================================
 
     // Represents a projectile fired by an enemy
     public class EnemyProjectile
@@ -332,11 +405,17 @@ namespace Space_intruders
         private Canvas canvas;
         private string[] frames;
         private int frameIndex = 0;
+        private int damage; // ADDED: Store projectile damage
         private GameWindow gameWindow;
 
-        public EnemyProjectile(Canvas gameCanvas, double startX, double startY, double projectileSpeed, string[] projectileFrames, GameWindow window)
+        // UPDATED Constructor to accept damage
+        public EnemyProjectile(Canvas gameCanvas, double startX, double startY, double projectileSpeed, string[] projectileFrames, int projectileDamage, GameWindow window)
         {
-            canvas = gameCanvas; speed = projectileSpeed; gameWindow = window;
+            canvas = gameCanvas;
+            speed = projectileSpeed;
+            gameWindow = window;
+            damage = projectileDamage; // Store damage
+
             frames = projectileFrames ?? new string[] { "/Resources/ball.png" };
             if (frames.Length == 0) frames = new string[] { "/Resources/ball.png" };
 
@@ -390,6 +469,7 @@ namespace Space_intruders
             else { projectileImage.Source = nextFrame; }
         }
 
+        // Checks for collisions with shields and player (considering armor)
         private void CheckCollision()
         {
             if (projectileImage == null || canvas == null || !canvas.Children.Contains(projectileImage) || gameWindow == null)
@@ -399,6 +479,7 @@ namespace Space_intruders
 
             Rect projectileRect = new Rect(Canvas.GetLeft(projectileImage), Canvas.GetTop(projectileImage), projectileImage.Width, projectileImage.Height);
 
+            // Check Shield Collisions
             foreach (var shield in gameWindow.shields.ToList())
             {
                 if (shield.GetDurability() <= 0) continue;
@@ -411,6 +492,7 @@ namespace Space_intruders
                 }
             }
 
+            // Check Player Collision
             Image playerImage = gameWindow.playerImage;
             if (playerImage != null && canvas != null && canvas.Children.Contains(playerImage))
             {
@@ -424,8 +506,9 @@ namespace Space_intruders
                     else
                     {
                         Player player = gameWindow.player;
-                        player.SetHP(player.GetHP() - 1);
-                        Debug.WriteLine($"Player hit! HP remaining: {player.GetHP()}");
+                        // Use stored damage value
+                        player.SetHP(player.GetHP() - this.damage);
+                        Debug.WriteLine($"Player hit! HP remaining: {player.GetHP()}, Damage Taken: {this.damage}");
                         gameWindow.UpdateHeartDisplay();
                         if (player.GetHP() <= 0)
                         {
@@ -448,5 +531,5 @@ namespace Space_intruders
             }
             projectileImage = null; gameWindow = null; canvas = null;
         }
-    }
-}
+    } 
+} 
