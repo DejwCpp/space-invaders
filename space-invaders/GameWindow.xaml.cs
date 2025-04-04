@@ -16,15 +16,22 @@ namespace Space_intruders
     public partial class GameWindow : Window
     {
         // --- Game State Variables ---
-        int marginPoz = 370;
         public Player player = new();
-        static int counter = 0; // Arrow counter
+        static int counter = 0;
         public Dictionary<int, Arrow> arrows = new Dictionary<int, Arrow>();
         public List<Shield> shields = new List<Shield>();
         public Enemies enemies { get; private set; }
         bool canShoot = true;
         private int currentScore = 0;
         private Random random = new Random();
+
+        // --- Input State for Smooth Movement & Shooting ---
+        private bool isMovingLeft = false;
+        private bool isMovingRight = false;
+        private bool isShootingKeyDown = false; // Track if spacebar is held
+
+        // --- Game Loop Timer ---
+        private DispatcherTimer gameLoopTimer;
 
         // --- Boost Related Variables ---
         private List<Boost> activeBoostsOnScreen = new List<Boost>();
@@ -49,11 +56,17 @@ namespace Space_intruders
         private DispatcherTimer slowEnemiesTimer;
         private const int SlowEnemiesDurationSeconds = 12;
 
+        private const double GameAreaWidth = 800;
+        private const double GameAreaHeight = 580;
+
         // --- Constructor & Initialization ---
         public GameWindow()
         {
             InitializeComponent();
-            this.PreviewKeyDown += new KeyEventHandler(PlayerMovement);
+
+            this.KeyDown += GameWindow_KeyDown;
+            this.KeyUp += GameWindow_KeyUp;
+
             InitializePlayer();
             InitializeShields();
             InitializeHeartImages();
@@ -61,6 +74,7 @@ namespace Space_intruders
             enemies.InitializeEnemies();
             UpdateScoreDisplay();
             InitializeBoostTimers();
+            InitializeGameLoop();
             currentShootCooldownMs = baseShootCooldownMs;
         }
 
@@ -68,7 +82,7 @@ namespace Space_intruders
         {
             player.SetID(0);
             player.SetHP(3);
-            player.SetSpeed(20);
+            player.SetSpeed(5); // Adjust this for desired speed with timer
             player.SetArmour(1);
             player.SetDMG(1);
         }
@@ -86,6 +100,108 @@ namespace Space_intruders
             slowEnemiesTimer = new DispatcherTimer();
             slowEnemiesTimer.Interval = TimeSpan.FromSeconds(SlowEnemiesDurationSeconds);
             slowEnemiesTimer.Tick += SlowEnemiesTimer_Tick;
+        }
+
+        private void InitializeGameLoop()
+        {
+            gameLoopTimer = new DispatcherTimer();
+            gameLoopTimer.Interval = TimeSpan.FromMilliseconds(16); // ~60 FPS
+            gameLoopTimer.Tick += GameLoopTick;
+            gameLoopTimer.Start();
+        }
+
+        // --- Main Game Loop ---
+        private void GameLoopTick(object sender, EventArgs e)
+        {
+            MovePlayer(); // Process movement based on flags
+            TryShoot();   // Process shooting based on flags & cooldown
+        }
+
+        // --- Input Event Handlers ---
+        private void GameWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Use non-repeating key check if needed, but usually fine for games
+            // if (e.IsRepeat) return;
+
+            switch (e.Key)
+            {
+                case Key.Left:
+                case Key.A:
+                    isMovingLeft = true;
+                    break;
+                case Key.Right:
+                case Key.D:
+                    isMovingRight = true;
+                    break;
+                case Key.Space:
+                    isShootingKeyDown = true; // Set flag when space is pressed
+                    break;
+            }
+        }
+
+        private void GameWindow_KeyUp(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Left:
+                case Key.A:
+                    isMovingLeft = false;
+                    break;
+                case Key.Right:
+                case Key.D:
+                    isMovingRight = false;
+                    break;
+                case Key.Space:
+                    isShootingKeyDown = false; // Clear flag when space is released
+                    break;
+            }
+        }
+
+        // --- Player Movement Logic (Called by Game Loop) ---
+        private void MovePlayer()
+        {
+            if (playerImage == null) return;
+
+            double currentLeft = Canvas.GetLeft(playerImage);
+            double newLeft = currentLeft;
+            int speed = player.GetSpeed();
+
+            if (isMovingLeft && !isMovingRight)
+            {
+                newLeft = currentLeft - speed;
+                if (newLeft < 0) newLeft = 0;
+            }
+            else if (isMovingRight && !isMovingLeft)
+            {
+                newLeft = currentLeft + speed;
+                if (newLeft + playerImage.Width > GameAreaWidth)
+                    newLeft = GameAreaWidth - playerImage.Width;
+            }
+
+            if (newLeft != currentLeft)
+            {
+                Canvas.SetLeft(playerImage, newLeft);
+                UpdateArmorIndicatorPosition();
+            }
+        }
+
+        // --- Shooting Logic (Called by Game Loop) ---
+        private void TryShoot()
+        {
+            // Check if the shoot key is held AND the cooldown has finished
+            if (isShootingKeyDown && canShoot)
+            {
+                canShoot = false;         // Prevent firing again until cooldown finishes
+                SpawnNewArrow();          // Fire the arrow
+                StartShootCooldown();     // Start the async cooldown timer
+            }
+        }
+
+        // --- Starts the cooldown asynchronously ---
+        private async void StartShootCooldown()
+        {
+            await Task.Delay(currentShootCooldownMs); // Wait for the cooldown duration
+            canShoot = true; // Allow shooting again
         }
 
         // --- Boost Spawning ---
@@ -177,7 +293,7 @@ namespace Space_intruders
             Dispatcher.Invoke(() => {
                 if (show)
                 {
-                    if (armorIndicator == null)
+                    if (armorIndicator == null && playerImage != null)
                     {
                         try
                         {
@@ -191,6 +307,7 @@ namespace Space_intruders
                             };
                             Canvas.SetZIndex(armorIndicator, Canvas.GetZIndex(playerImage) - 1);
                             gameCanvas.Children.Add(armorIndicator);
+                            UpdateArmorIndicatorPosition();
                         }
                         catch (Exception ex)
                         {
@@ -200,9 +317,8 @@ namespace Space_intruders
                     }
                     if (armorIndicator != null)
                     {
-                        Canvas.SetLeft(armorIndicator, Canvas.GetLeft(playerImage) - 5);
-                        Canvas.SetTop(armorIndicator, Canvas.GetTop(playerImage) - 5);
                         armorIndicator.Visibility = Visibility.Visible;
+                        UpdateArmorIndicatorPosition();
                     }
                 }
                 else
@@ -213,6 +329,15 @@ namespace Space_intruders
                     }
                 }
             });
+        }
+
+        private void UpdateArmorIndicatorPosition()
+        {
+            if (armorIndicator != null && armorIndicator.Visibility == Visibility.Visible && playerImage != null)
+            {
+                Canvas.SetLeft(armorIndicator, Canvas.GetLeft(playerImage) - 5);
+                Canvas.SetTop(armorIndicator, Canvas.GetTop(playerImage) - 5);
+            }
         }
 
         private void ApplySlowEnemies()
@@ -238,7 +363,7 @@ namespace Space_intruders
             }
         }
 
-        // --- UI Update & Player Control ---
+        // --- UI Update ---
         private void InitializeHeartImages()
         {
             heartsPanel.Children.Clear();
@@ -258,51 +383,6 @@ namespace Space_intruders
             Canvas.SetZIndex(heartsPanel, 50);
         }
 
-        public async void PlayerMovement(object sender, KeyEventArgs e)
-        {
-            if (playerImage == null) return;
-
-            double playerWidth = playerImage.Width;
-            double canvasWidth = 800; // Use design width
-            double playerLeft = Canvas.GetLeft(playerImage);
-            double playerTop = Canvas.GetTop(playerImage);
-
-            switch (e.Key)
-            {
-                case Key.Right:
-                case Key.D:
-                    if (playerLeft + player.GetSpeed() + playerWidth <= canvasWidth)
-                    {
-                        playerLeft += player.GetSpeed();
-                        Canvas.SetLeft(playerImage, playerLeft);
-                    }
-                    break;
-                case Key.Left:
-                case Key.A:
-                    if (playerLeft - player.GetSpeed() >= 0)
-                    {
-                        playerLeft -= player.GetSpeed();
-                        Canvas.SetLeft(playerImage, playerLeft);
-                    }
-                    break;
-                case Key.Space:
-                    if (canShoot)
-                    {
-                        canShoot = false;
-                        SpawnNewArrow();
-                        await Task.Delay(currentShootCooldownMs);
-                        canShoot = true;
-                    }
-                    break;
-            }
-
-            if (armorIndicator != null && armorIndicator.Visibility == Visibility.Visible)
-            {
-                Canvas.SetLeft(armorIndicator, playerLeft - 5);
-                Canvas.SetTop(armorIndicator, playerTop - 5);
-            }
-        }
-
         public void UpdateHeartDisplay()
         {
             Dispatcher.Invoke(() => { InitializeHeartImages(); });
@@ -311,8 +391,10 @@ namespace Space_intruders
         // --- Game Over Handling ---
         public void GameOver(bool won = false)
         {
-            this.PreviewKeyDown -= PlayerMovement;
+            this.KeyDown -= GameWindow_KeyDown;
+            this.KeyUp -= GameWindow_KeyUp;
 
+            gameLoopTimer?.Stop();
             fasterShootingTimer?.Stop();
             armorTimer?.Stop();
             slowEnemiesTimer?.Stop();
@@ -331,6 +413,9 @@ namespace Space_intruders
                 foreach (var enemyImg in enemies?.enemies.ToList() ?? new List<Image>())
                     if (gameCanvas.Children.Contains(enemyImg)) gameCanvas.Children.Remove(enemyImg);
 
+                if (playerImage != null) playerImage.Visibility = Visibility.Collapsed;
+                if (armorIndicator != null) armorIndicator.Visibility = Visibility.Collapsed;
+
                 Label gameOverLabel = new Label
                 {
                     Content = won ? "YOU WIN!" : "GAME OVER",
@@ -341,8 +426,8 @@ namespace Space_intruders
                     VerticalAlignment = VerticalAlignment.Center
                 };
                 double labelWidthEstimate = 350; double labelHeightEstimate = 80;
-                Canvas.SetLeft(gameOverLabel, (800 - labelWidthEstimate) / 2); // Use design width
-                Canvas.SetTop(gameOverLabel, (580 - labelHeightEstimate) / 2); // Use design height
+                Canvas.SetLeft(gameOverLabel, (GameAreaWidth - labelWidthEstimate) / 2);
+                Canvas.SetTop(gameOverLabel, (GameAreaHeight - labelHeightEstimate) / 2);
                 Canvas.SetZIndex(gameOverLabel, 100);
 
                 if (!gameCanvas.Children.OfType<Label>().Any(lbl => lbl.Content.ToString().Contains("GAME OVER") || lbl.Content.ToString().Contains("YOU WIN")))
@@ -357,9 +442,9 @@ namespace Space_intruders
         {
             try
             {
-                if (playerImage == null)
+                if (playerImage == null || playerImage.Visibility != Visibility.Visible)
                 {
-                    Debug.WriteLine("Error: Cannot spawn arrow, player image is null."); return;
+                    return;
                 }
 
                 Arrow arrow = new Arrow();
@@ -441,7 +526,7 @@ namespace Space_intruders
         {
             Dispatcher.Invoke(() => {
                 ScoreLabel.Content = $"Score: {currentScore}";
-                Canvas.SetLeft(ScoreLabel, 800 - 150); // Use design width
+                Canvas.SetLeft(ScoreLabel, GameAreaWidth - 150);
                 Canvas.SetTop(ScoreLabel, 10);
                 ScoreLabel.FontSize = 16;
                 ScoreLabel.Foreground = Brushes.White;
