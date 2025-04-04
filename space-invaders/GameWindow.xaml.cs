@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO; 
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,11 +11,19 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Diagnostics;
 using System.Windows.Media;
+using System.Text; 
 
 namespace Space_intruders
 {
     public partial class GameWindow : Window
     {
+        // --- Static Members for Score File Path ---
+        private static readonly string ScoreFileName = "scores.csv";
+        private static readonly string AppDataFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SpaceIntrudersMedieval");
+        private static readonly string ScoreFilePath = Path.Combine(AppDataFolder, ScoreFileName);
+
         // --- Game State Variables ---
         public Player player = new();
         static int counter = 0;
@@ -25,48 +34,44 @@ namespace Space_intruders
         private int currentScore = 0;
         private Random random = new Random();
 
-        // --- Input State for Smooth Movement & Shooting ---
+        // --- Input State ---
         private bool isMovingLeft = false;
         private bool isMovingRight = false;
-        private bool isShootingKeyDown = false; // Track if spacebar is held
+        private bool isShootingKeyDown = false;
 
-        // --- Game Loop Timer ---
+        // --- Timers ---
         private DispatcherTimer gameLoopTimer;
+        private DispatcherTimer fasterShootingTimer;
+        private DispatcherTimer armorTimer;
+        private DispatcherTimer slowEnemiesTimer;
 
-        // --- Boost Related Variables ---
+        // --- Boosts ---
         private List<Boost> activeBoostsOnScreen = new List<Boost>();
-        private const double BoostSpawnChance = 0.10;
-        private const int MaxPlayerHp = 5;
-
-        // Faster Shooting Boost State
+        private const double BoostSpawnChance = 0.1;
+        private const int MaxPlayerHp = 3;
         private int baseShootCooldownMs = 500;
         private int currentShootCooldownMs;
-        private DispatcherTimer fasterShootingTimer;
-        private const int FasterShootingDurationSeconds = 10;
+        private const int FasterShootingDurationSeconds = 5;
         private const int FasterShootCooldownMs = 150;
-
-        // Temporary Armor Boost State
         public bool isArmorActive { get; private set; } = false;
-        private DispatcherTimer armorTimer;
-        private const int ArmorDurationSeconds = 8;
+        private const int ArmorDurationSeconds = 3;
         private Image armorIndicator;
-
-        // Slow Enemies Boost State
         public bool areEnemiesSlowed { get; private set; } = false;
-        private DispatcherTimer slowEnemiesTimer;
-        private const int SlowEnemiesDurationSeconds = 12;
+        private const int SlowEnemiesDurationSeconds = 6;
 
+        // --- Constants ---
         private const double GameAreaWidth = 800;
         private const double GameAreaHeight = 580;
+
+        // --- Game State ---
+        private bool isGameOver = false;
 
         // --- Constructor & Initialization ---
         public GameWindow()
         {
             InitializeComponent();
-
             this.KeyDown += GameWindow_KeyDown;
             this.KeyUp += GameWindow_KeyUp;
-
             InitializePlayer();
             InitializeShields();
             InitializeHeartImages();
@@ -82,30 +87,26 @@ namespace Space_intruders
         {
             player.SetID(0);
             player.SetHP(3);
-            player.SetSpeed(5); // Adjust this for desired speed with timer
+            player.SetSpeed(5);
             player.SetArmour(1);
             player.SetDMG(1);
         }
 
         private void InitializeBoostTimers()
         {
-            fasterShootingTimer = new DispatcherTimer();
-            fasterShootingTimer.Interval = TimeSpan.FromSeconds(FasterShootingDurationSeconds);
+            fasterShootingTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(FasterShootingDurationSeconds) };
             fasterShootingTimer.Tick += FasterShootingTimer_Tick;
 
-            armorTimer = new DispatcherTimer();
-            armorTimer.Interval = TimeSpan.FromSeconds(ArmorDurationSeconds);
+            armorTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(ArmorDurationSeconds) };
             armorTimer.Tick += ArmorTimer_Tick;
 
-            slowEnemiesTimer = new DispatcherTimer();
-            slowEnemiesTimer.Interval = TimeSpan.FromSeconds(SlowEnemiesDurationSeconds);
+            slowEnemiesTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(SlowEnemiesDurationSeconds) };
             slowEnemiesTimer.Tick += SlowEnemiesTimer_Tick;
         }
 
         private void InitializeGameLoop()
         {
-            gameLoopTimer = new DispatcherTimer();
-            gameLoopTimer.Interval = TimeSpan.FromMilliseconds(16); // ~60 FPS
+            gameLoopTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
             gameLoopTimer.Tick += GameLoopTick;
             gameLoopTimer.Start();
         }
@@ -113,29 +114,19 @@ namespace Space_intruders
         // --- Main Game Loop ---
         private void GameLoopTick(object sender, EventArgs e)
         {
-            MovePlayer(); // Process movement based on flags
-            TryShoot();   // Process shooting based on flags & cooldown
+            if (isGameOver) return;
+            MovePlayer();
+            TryShoot();
         }
 
         // --- Input Event Handlers ---
         private void GameWindow_KeyDown(object sender, KeyEventArgs e)
         {
-            // Use non-repeating key check if needed, but usually fine for games
-            // if (e.IsRepeat) return;
-
             switch (e.Key)
             {
-                case Key.Left:
-                case Key.A:
-                    isMovingLeft = true;
-                    break;
-                case Key.Right:
-                case Key.D:
-                    isMovingRight = true;
-                    break;
-                case Key.Space:
-                    isShootingKeyDown = true; // Set flag when space is pressed
-                    break;
+                case Key.Left: case Key.A: isMovingLeft = true; break;
+                case Key.Right: case Key.D: isMovingRight = true; break;
+                case Key.Space: isShootingKeyDown = true; break;
             }
         }
 
@@ -143,24 +134,16 @@ namespace Space_intruders
         {
             switch (e.Key)
             {
-                case Key.Left:
-                case Key.A:
-                    isMovingLeft = false;
-                    break;
-                case Key.Right:
-                case Key.D:
-                    isMovingRight = false;
-                    break;
-                case Key.Space:
-                    isShootingKeyDown = false; // Clear flag when space is released
-                    break;
+                case Key.Left: case Key.A: isMovingLeft = false; break;
+                case Key.Right: case Key.D: isMovingRight = false; break;
+                case Key.Space: isShootingKeyDown = false; break;
             }
         }
 
-        // --- Player Movement Logic (Called by Game Loop) ---
+        // --- Player Movement Logic ---
         private void MovePlayer()
         {
-            if (playerImage == null) return;
+            if (playerImage == null || isGameOver) return;
 
             double currentLeft = Canvas.GetLeft(playerImage);
             double newLeft = currentLeft;
@@ -185,44 +168,47 @@ namespace Space_intruders
             }
         }
 
-        // --- Shooting Logic (Called by Game Loop) ---
+        // --- Shooting Logic ---
         private void TryShoot()
         {
-            // Check if the shoot key is held AND the cooldown has finished
+            if (isGameOver) return;
             if (isShootingKeyDown && canShoot)
             {
-                canShoot = false;         // Prevent firing again until cooldown finishes
-                SpawnNewArrow();          // Fire the arrow
-                StartShootCooldown();     // Start the async cooldown timer
+                canShoot = false;
+                SpawnNewArrow();
+                StartShootCooldown();
             }
         }
 
-        // --- Starts the cooldown asynchronously ---
         private async void StartShootCooldown()
         {
-            await Task.Delay(currentShootCooldownMs); // Wait for the cooldown duration
-            canShoot = true; // Allow shooting again
+            await Task.Delay(currentShootCooldownMs);
+            if (!isGameOver)
+            {
+                canShoot = true;
+            }
         }
 
         // --- Boost Spawning ---
         public void TrySpawnBoost(double x, double y)
         {
+            if (isGameOver) return;
             if (random.NextDouble() < BoostSpawnChance)
             {
-                Debug.WriteLine($"TrySpawnBoost: Chance met. Attempting to determine boost type at ({x:F0}, {y:F0}).");
+                Debug.WriteLine($"TrySpawnBoost: Chance met...");
                 Array boostTypes = Enum.GetValues(typeof(Boost.BoostType));
                 Boost.BoostType randomType = (Boost.BoostType)boostTypes.GetValue(random.Next(boostTypes.Length));
-                Debug.WriteLine($"TrySpawnBoost: Determined type: {randomType}. Creating Boost object...");
+                Debug.WriteLine($"TrySpawnBoost: Determined type: {randomType}...");
 
                 Boost newBoost = new Boost(gameCanvas, x, y, randomType, this);
                 if (newBoost.BoostImage != null)
                 {
                     activeBoostsOnScreen.Add(newBoost);
-                    Debug.WriteLine($"TrySpawnBoost: Successfully created and added boost: {randomType}.");
+                    Debug.WriteLine($"TrySpawnBoost: Successfully created boost: {randomType}.");
                 }
                 else
                 {
-                    Debug.WriteLine($"TrySpawnBoost: Failed to create Boost object for type {randomType}. BoostImage was null.");
+                    Debug.WriteLine($"TrySpawnBoost: Failed to create Boost object for type {randomType}.");
                 }
             }
         }
@@ -230,6 +216,7 @@ namespace Space_intruders
         // --- Boost Activation ---
         public void ActivateBoost(Boost.BoostType type)
         {
+            if (isGameOver) return;
             Debug.WriteLine($"Activating boost: {type}");
             switch (type)
             {
@@ -253,7 +240,7 @@ namespace Space_intruders
         {
             fasterShootingTimer.Stop();
             currentShootCooldownMs = baseShootCooldownMs;
-            Debug.WriteLine("Faster shooting expired. Cooldown reset.");
+            Debug.WriteLine("Faster shooting expired.");
         }
 
         private void ApplyHealthRegen()
@@ -309,25 +296,11 @@ namespace Space_intruders
                             gameCanvas.Children.Add(armorIndicator);
                             UpdateArmorIndicatorPosition();
                         }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"Error loading shield indicator: {ex.Message}");
-                            armorIndicator = null;
-                        }
+                        catch (Exception ex) { Debug.WriteLine($"Error loading shield indicator: {ex.Message}"); armorIndicator = null; }
                     }
-                    if (armorIndicator != null)
-                    {
-                        armorIndicator.Visibility = Visibility.Visible;
-                        UpdateArmorIndicatorPosition();
-                    }
+                    if (armorIndicator != null) { armorIndicator.Visibility = Visibility.Visible; UpdateArmorIndicatorPosition(); }
                 }
-                else
-                {
-                    if (armorIndicator != null)
-                    {
-                        armorIndicator.Visibility = Visibility.Hidden;
-                    }
-                }
+                else { if (armorIndicator != null) { armorIndicator.Visibility = Visibility.Hidden; } }
             });
         }
 
@@ -342,11 +315,7 @@ namespace Space_intruders
 
         private void ApplySlowEnemies()
         {
-            if (!areEnemiesSlowed)
-            {
-                areEnemiesSlowed = true;
-                enemies?.SlowDownEnemies();
-            }
+            if (!areEnemiesSlowed) { areEnemiesSlowed = true; enemies?.SlowDownEnemies(); }
             slowEnemiesTimer.Stop();
             slowEnemiesTimer.Start();
             Debug.WriteLine("Enemies slowed!");
@@ -355,12 +324,7 @@ namespace Space_intruders
         private void SlowEnemiesTimer_Tick(object sender, EventArgs e)
         {
             slowEnemiesTimer.Stop();
-            if (areEnemiesSlowed)
-            {
-                areEnemiesSlowed = false;
-                enemies?.SpeedUpEnemies();
-                Debug.WriteLine("Enemy slow expired.");
-            }
+            if (areEnemiesSlowed) { areEnemiesSlowed = false; enemies?.SpeedUpEnemies(); Debug.WriteLine("Enemy slow expired."); }
         }
 
         // --- UI Update ---
@@ -388,12 +352,17 @@ namespace Space_intruders
             Dispatcher.Invoke(() => { InitializeHeartImages(); });
         }
 
-        // --- Game Over Handling ---
+        // --- Game Over Handling --- MODIFIED ORDER
         public void GameOver(bool won = false)
         {
+            if (isGameOver) return;
+            isGameOver = true;
+
+            Debug.WriteLine($"Game Over called. Won: {won}");
+
+            // Stop Input and Timers first
             this.KeyDown -= GameWindow_KeyDown;
             this.KeyUp -= GameWindow_KeyUp;
-
             gameLoopTimer?.Stop();
             fasterShootingTimer?.Stop();
             armorTimer?.Stop();
@@ -401,21 +370,26 @@ namespace Space_intruders
             enemies?.StopTimers();
             foreach (var arrow in arrows.Values.ToList()) arrow.StopTimer();
             arrows.Clear();
+            foreach (var boost in activeBoostsOnScreen.ToList()) boost.Cleanup();
+            activeBoostsOnScreen.Clear();
 
+
+            // ** THEN: Update UI to show Game Over screen **
             Dispatcher.Invoke(() => {
-                foreach (var boost in activeBoostsOnScreen.ToList()) boost.Cleanup();
-                activeBoostsOnScreen.Clear();
 
-                foreach (var arrowImg in gameCanvas.Children.OfType<Image>().Where(img => img.Tag is Arrow).ToList())
-                    gameCanvas.Children.Remove(arrowImg);
-                foreach (var projImg in gameCanvas.Children.OfType<Image>().Where(img => img.Tag is EnemyProjectile).ToList())
-                    gameCanvas.Children.Remove(projImg);
-                foreach (var enemyImg in enemies?.enemies.ToList() ?? new List<Image>())
-                    if (gameCanvas.Children.Contains(enemyImg)) gameCanvas.Children.Remove(enemyImg);
-
+                // --- Hide all game elements ---
+                gameCanvas.Children.Clear();
                 if (playerImage != null) playerImage.Visibility = Visibility.Collapsed;
                 if (armorIndicator != null) armorIndicator.Visibility = Visibility.Collapsed;
+                if (heartsPanel != null) heartsPanel.Visibility = Visibility.Collapsed;
+                if (ScoreLabel != null) ScoreLabel.Visibility = Visibility.Collapsed;
+                foreach (var shield in shields)
+                {
+                    Image img = shield.GetImage();
+                    if (img != null) img.Visibility = Visibility.Collapsed;
+                }
 
+                // --- Display Game Over Text ---
                 Label gameOverLabel = new Label
                 {
                     Content = won ? "YOU WIN!" : "GAME OVER",
@@ -427,19 +401,79 @@ namespace Space_intruders
                 };
                 double labelWidthEstimate = 350; double labelHeightEstimate = 80;
                 Canvas.SetLeft(gameOverLabel, (GameAreaWidth - labelWidthEstimate) / 2);
-                Canvas.SetTop(gameOverLabel, (GameAreaHeight - labelHeightEstimate) / 2);
+                Canvas.SetTop(gameOverLabel, (GameAreaHeight - labelHeightEstimate) / 2 - 50);
                 Canvas.SetZIndex(gameOverLabel, 100);
+                gameCanvas.Children.Add(gameOverLabel);
 
-                if (!gameCanvas.Children.OfType<Label>().Any(lbl => lbl.Content.ToString().Contains("GAME OVER") || lbl.Content.ToString().Contains("YOU WIN")))
-                    gameCanvas.Children.Add(gameOverLabel);
+
+                // --- Display Return to Menu Button ---
+                Button returnButton = new Button
+                {
+                    Content = "Return to Menu",
+                    Width = 180,
+                    Height = 40,
+                    FontSize = 16,
+                    Background = Brushes.DarkGoldenrod,
+                    Foreground = Brushes.White
+                };
+                Canvas.SetLeft(returnButton, (GameAreaWidth - returnButton.Width) / 2);
+                Canvas.SetTop(returnButton, Canvas.GetTop(gameOverLabel) + labelHeightEstimate + 20);
+                Canvas.SetZIndex(returnButton, 100);
+                returnButton.Click += ReturnToMenu_Click;
+                gameCanvas.Children.Add(returnButton);
             });
 
-            Debug.WriteLine($"Game Over called. Won: {won}");
+            // ** FINALLY: Prompt for Nickname and Save Score if applicable **
+            // This happens after the Game Over screen is displayed
+            if (!won && currentScore > 0)
+            {
+                // No need for Dispatcher here as PromptAndSaveScore uses ShowDialog
+                PromptAndSaveScore();
+            }
+        }
+
+        // --- Event Handler for Return Button ---
+        private void ReturnToMenu_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow mainWindow = new MainWindow();
+            mainWindow.Show();
+            this.Close();
+        }
+
+
+        // --- Score Saving ---
+        private void PromptAndSaveScore()
+        {
+            NicknameInputDialog dialog = new NicknameInputDialog();
+            dialog.Owner = this;
+            if (dialog.ShowDialog() == true)
+            {
+                string nickname = dialog.Nickname;
+                SaveScore(nickname, currentScore);
+            }
+        }
+
+        private void SaveScore(string nickname, int score)
+        {
+            try
+            {
+                Directory.CreateDirectory(AppDataFolder);
+                ScoreEntry entry = new ScoreEntry(nickname, score, DateTime.UtcNow);
+                string scoreLine = $"{entry.Nickname},{entry.Score},{entry.Timestamp:o}";
+                File.AppendAllText(ScoreFilePath, scoreLine + Environment.NewLine, Encoding.UTF8);
+                Debug.WriteLine($"Score saved: {scoreLine}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error saving score: {ex.Message}");
+                MessageBox.Show($"Could not save score.\nError: {ex.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         // --- Arrow Handling ---
         public void SpawnNewArrow()
         {
+            if (isGameOver) return;
             try
             {
                 if (playerImage == null || playerImage.Visibility != Visibility.Visible)
@@ -456,7 +490,7 @@ namespace Space_intruders
 
                 BitmapImage imageSource = new BitmapImage(new Uri("/Resources/arrow.png", UriKind.Relative));
                 Image arrowImage = new Image()
-                {
+                { /* ... properties ... */
                     Source = imageSource,
                     Width = 30,
                     Height = 30,
@@ -489,7 +523,8 @@ namespace Space_intruders
                     {
                         gameCanvas.Children.Remove(arrowImage);
                     }
-                    arrows.Remove(arrowID);
+                    if (arrows.ContainsKey(arrowID))
+                        arrows.Remove(arrowID);
                 }
             });
         }
@@ -498,17 +533,18 @@ namespace Space_intruders
         private void InitializeShields()
         {
             Dispatcher.Invoke(() => {
-                foreach (var shield in shields)
+                foreach (var existingShield in shields)
                 {
-                    Image shieldImg = shield.GetImage();
-                    if (shieldImg != null && gameCanvas.Children.Contains(shieldImg))
-                        gameCanvas.Children.Remove(shieldImg);
+                    Image img = existingShield.GetImage();
+                    if (img != null && gameCanvas.Children.Contains(img))
+                    {
+                        gameCanvas.Children.Remove(img);
+                    }
                 }
                 shields.Clear();
 
                 double[] shieldPositions = { 100, 250, 400, 550, 700 };
                 double shieldPosY = 470;
-
                 foreach (double posX in shieldPositions)
                 {
                     shields.Add(new Shield(gameCanvas, posX, shieldPosY));
@@ -518,6 +554,7 @@ namespace Space_intruders
 
         public void AddScore(int points)
         {
+            if (isGameOver) return;
             currentScore += points;
             UpdateScoreDisplay();
         }

@@ -11,8 +11,8 @@
         <Style x:Key="ButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#A67C52"/>
             <Setter Property="Foreground" Value="#E6D8B9"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Padding" Value="14,10"/>
             <Setter Property="FontFamily" Value="Trajan Pro"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -69,9 +69,11 @@
 
         <Viewbox Grid.Row="1" Grid.Column="1" Stretch="Uniform" Margin="20">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="Space Intruders:" FontSize="30" Style="{StaticResource TextStyle}"/>
-                <TextBlock Text="Medieval Edition" FontSize="15" HorizontalAlignment="Right" Margin="0,0,0,20" Style="{StaticResource TextStyle}"/>
-                <Button x:Name="StartButton" Content="Start Game" Style="{StaticResource ButtonStyle}" Width="135"/>
+                <TextBlock Text="Space Intruders:" FontSize="45" Style="{StaticResource TextStyle}"/>
+                <TextBlock Text="Medieval Edition" FontSize="25" HorizontalAlignment="Right" Margin="0,0,0,20" Style="{StaticResource TextStyle}"/>
+                <Button x:Name="StartButton" Content="Start Game" Style="{StaticResource ButtonStyle}"/>
+                <!-- ADDED LEADERBOARD BUTTON -->
+                <Button x:Name="LeaderboardButton" Content="Leaderboard" Style="{StaticResource ButtonStyle}" Click="LeaderboardButton_Click"/>
             </StackPanel>
         </Viewbox>
 
