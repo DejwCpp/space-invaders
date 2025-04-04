@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\archer-player.png" />
     <None Remove="Resources\arrow.png" />
     <None Remove="Resources\ball.png" />
     <None Remove="Resources\boost_armor.png" />
@@ -20,6 +21,7 @@
     <None Remove="Resources\enemy.png" />
     <None Remove="Resources\enemy1.png" />
     <None Remove="Resources\enemy2.png" />
+    <None Remove="Resources\game-background.jpg" />
     <None Remove="Resources\heart.png" />
     <None Remove="Resources\main-bg.jpg" />
     <None Remove="Resources\parchment_background.jpg" />
@@ -52,6 +54,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\archer-player.png" />
     <Resource Include="Resources\arrow.png" />
     <Resource Include="Resources\ball.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -64,6 +67,7 @@
     <Resource Include="Resources\enemy.png" />
     <Resource Include="Resources\enemy1.png" />
     <Resource Include="Resources\enemy2.png" />
+    <Resource Include="Resources\game-background.jpg" />
     <Resource Include="Resources\heart.png" />
     <Resource Include="Resources\main-bg.jpg" />
     <Resource Include="Resources\shield.png" />
