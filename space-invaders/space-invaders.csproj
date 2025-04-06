@@ -11,6 +11,11 @@
 
   <ItemGroup>
     <None Remove="Resources\archer-player.png" />
+    <None Remove="Resources\archer\bullet\bullet1.png" />
+    <None Remove="Resources\archer\normal\animation1.png" />
+    <None Remove="Resources\archer\normal\animation2.png" />
+    <None Remove="Resources\archer\normal\animation3.png" />
+    <None Remove="Resources\archer\normal\animation4.png" />
     <None Remove="Resources\arrow.png" />
     <None Remove="Resources\ball.png" />
     <None Remove="Resources\boost_armor.png" />
@@ -23,6 +28,13 @@
     <None Remove="Resources\enemy2.png" />
     <None Remove="Resources\game-background.jpg" />
     <None Remove="Resources\heart.png" />
+    <None Remove="Resources\mage\bullet\bullet1.png" />
+    <None Remove="Resources\mage\bullet\bullet2.png" />
+    <None Remove="Resources\mage\bullet\bullet3.png" />
+    <None Remove="Resources\mage\bullet\bullet4.png" />
+    <None Remove="Resources\mage\normal\animation1.png" />
+    <None Remove="Resources\mage\normal\animation2.png" />
+    <None Remove="Resources\mage\normal\animation3.png" />
     <None Remove="Resources\main-bg.jpg" />
     <None Remove="Resources\parchment_background.jpg" />
     <None Remove="Resources\shield.png" />
@@ -55,6 +67,21 @@
 
   <ItemGroup>
     <Resource Include="Resources\archer-player.png" />
+    <Resource Include="Resources\archer\bullet\bullet1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\archer\normal\animation1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\archer\normal\animation2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\archer\normal\animation3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\archer\normal\animation4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\arrow.png" />
     <Resource Include="Resources\ball.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -69,6 +96,27 @@
     <Resource Include="Resources\enemy2.png" />
     <Resource Include="Resources\game-background.jpg" />
     <Resource Include="Resources\heart.png" />
+    <Resource Include="Resources\mage\bullet\bullet1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\mage\bullet\bullet2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\mage\bullet\bullet3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\mage\bullet\bullet4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\mage\normal\animation1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\mage\normal\animation2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\mage\normal\animation3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\main-bg.jpg" />
     <Resource Include="Resources\shield.png" />
     <Resource Include="Resources\shield2.png" />
