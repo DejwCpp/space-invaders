@@ -22,6 +22,7 @@
     <None Remove="Resources\boost_fastshoot.png" />
     <None Remove="Resources\boost_health.png" />
     <None Remove="Resources\boost_slow.png" />
+    <None Remove="Resources\castle.png" />
     <None Remove="Resources\coin.png" />
     <None Remove="Resources\enemy.png" />
     <None Remove="Resources\enemy1.png" />
@@ -29,19 +30,14 @@
     <None Remove="Resources\game-background.jpg" />
     <None Remove="Resources\heart.png" />
     <None Remove="Resources\mage\bullet\bullet1.png" />
-    <None Remove="Resources\mage\bullet\bullet2.png" />
-    <None Remove="Resources\mage\bullet\bullet3.png" />
-    <None Remove="Resources\mage\bullet\bullet4.png" />
     <None Remove="Resources\mage\normal\animation1.png" />
     <None Remove="Resources\mage\normal\animation2.png" />
     <None Remove="Resources\mage\normal\animation3.png" />
     <None Remove="Resources\main-bg.jpg" />
-    <None Remove="Resources\parchment_background.jpg" />
     <None Remove="Resources\shield.png" />
     <None Remove="Resources\shield2.png" />
     <None Remove="Resources\shield3.png" />
-    <None Remove="Resources\stickman.jpg" />
-    <None Remove="Resources\stickman.png" />
+    <None Remove="Resources\shield\castle9.png" />
     <None Remove="Resources\wizard\attack\animation1.png" />
     <None Remove="Resources\wizard\attack\animation10.png" />
     <None Remove="Resources\wizard\attack\animation11.png" />
@@ -62,10 +58,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <DesignDataWithDesignTimeCreatableTypes Include="Resources\parchment_background.jpg" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="Resources\archer-player.png" />
     <Resource Include="Resources\archer\bullet\bullet1.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -82,7 +74,9 @@
     <Resource Include="Resources\archer\normal\animation4.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\arrow.png" />
+    <Resource Include="Resources\arrow.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\ball.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
@@ -90,6 +84,9 @@
     <Resource Include="Resources\boost_fastshoot.png" />
     <Resource Include="Resources\boost_health.png" />
     <Resource Include="Resources\boost_slow.png" />
+    <Resource Include="Resources\castle.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\coin.png" />
     <Resource Include="Resources\enemy.png" />
     <Resource Include="Resources\enemy1.png" />
@@ -108,6 +105,9 @@
     <Resource Include="Resources\mage\bullet\bullet4.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Resources\mage\bullet\bullet5.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\mage\normal\animation1.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
@@ -121,8 +121,33 @@
     <Resource Include="Resources\shield.png" />
     <Resource Include="Resources\shield2.png" />
     <Resource Include="Resources\shield3.png" />
-    <Resource Include="Resources\stickman.jpg" />
-    <Resource Include="Resources\stickman.png" />
+    <Resource Include="Resources\shield\castle1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\shield\castle2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\shield\castle3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\shield\castle4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\shield\castle5.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\shield\castle6.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\shield\castle7.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\shield\castle8.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\shield\castle9.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\wizard\attack\animation1.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

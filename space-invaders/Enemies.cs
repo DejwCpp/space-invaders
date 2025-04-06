@@ -74,7 +74,7 @@ namespace Space_intruders
             // Type 2 (Wizard - More Damage) C:\Users\dejwc\Downloads\space-invaders\space-invaders
             new EnemyType {
                 EnemyImageFrames = new string[] { "/Resources/mage/normal/animation1.png", "/Resources/mage/normal/animation2.png", "/Resources/mage/normal/animation3.png", "/Resources/mage/normal/animation3.png" },
-                ProjectileImageFrames = new string[] { "/Resources/mage/bullet/bullet1.png", "/Resources/mage/bullet/bullet2.png", "/Resources/mage/bullet/bullet3.png", "/Resources/mage/bullet/bullet4.png" },
+                ProjectileImageFrames = new string[] { "/Resources/mage/bullet/bullet1.png", "/Resources/mage/bullet/bullet2.png", "/Resources/mage/bullet/bullet3.png", "/Resources/mage/bullet/bullet4.png", "/Resources/mage/bullet/bullet5.png" },
                 ProjectileSpeed = 5.0, Points = 20, Damage = 2 // << WIZARD DAMAGE
             },
             // Type 3 (Stronger Wizard - More Damage)

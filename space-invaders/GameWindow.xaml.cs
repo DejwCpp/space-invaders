@@ -543,8 +543,9 @@ namespace Space_intruders
                 }
                 shields.Clear();
 
-                double[] shieldPositions = { 100, 250, 400, 550, 700 };
-                double shieldPosY = 470;
+                //double[] shieldPositions = { 100, 250, 400, 550, 700 };
+                double[] shieldPositions = { 100, 300, 500, 700 };
+                double shieldPosY = 430;
                 foreach (double posX in shieldPositions)
                 {
                     shields.Add(new Shield(gameCanvas, posX, shieldPosY));
