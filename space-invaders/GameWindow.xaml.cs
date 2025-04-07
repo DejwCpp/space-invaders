@@ -48,7 +48,7 @@ namespace Space_intruders
         // --- Boosts ---
         private List<Boost> activeBoostsOnScreen = new List<Boost>();
         private const double BoostSpawnChance = 0.2;
-        private const int MaxPlayerHp = 3;
+        private const int MaxPlayerHp = 6;
         private int baseShootCooldownMs = 500;
         private int currentShootCooldownMs;
         private const int FasterShootingDurationSeconds = 5;
@@ -543,8 +543,9 @@ namespace Space_intruders
                 }
                 shields.Clear();
 
-                double[] shieldPositions = { 100, 250, 400, 550, 700 };
-                double shieldPosY = 470;
+                //double[] shieldPositions = { 100, 250, 400, 550, 700 };
+                double[] shieldPositions = { 100, 300, 500, 700 };
+                double shieldPosY = 430;
                 foreach (double posX in shieldPositions)
                 {
                     shields.Add(new Shield(gameCanvas, posX, shieldPosY));

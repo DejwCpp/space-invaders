@@ -7,16 +7,22 @@ public class Shield
 {
     private Canvas canvas;
     private Image shieldImage;
-    private int initialDurability = 6;
+    private int initialDurability = 7;
     private int durability;
     private double initialPosX;
     private double initialPosY;
 
-    private static readonly string[] shieldImages = 
+    private static readonly string[] shieldImages =
     {
-        "/Resources/shield3.png", 
-        "/Resources/shield2.png", 
-        "/Resources/shield.png"   
+        "/Resources/shield/castle9.png",
+        "/Resources/shield/castle8.png",
+        "/Resources/shield/castle7.png",
+        "/Resources/shield/castle6.png",
+        "/Resources/shield/castle5.png",
+        "/Resources/shield/castle4.png",
+        "/Resources/shield/castle3.png",
+        "/Resources/shield/castle2.png",
+        "/Resources/shield/castle1.png",
     };
 
     public Shield(Canvas gameCanvas, double posX, double posY)
@@ -28,9 +34,9 @@ public class Shield
 
         shieldImage = new Image()
         {
-            Width = 70,
-            Height = 53,
-            Source = LoadShieldImage(0), 
+            Width = 110,
+            Height = 100,
+            Source = LoadShieldImage(8), 
             Tag = "active" 
         };
 
@@ -59,19 +65,7 @@ public class Shield
 
     public void TakeDamage()
     {
-        if (durability <= 0) return; 
-
-        durability--;
-
-        if (durability == 3) 
-        {
-            shieldImage.Source = LoadShieldImage(1);
-        }
-        else if (durability == 1) 
-        {
-            shieldImage.Source = LoadShieldImage(2);
-        }
-        else if (durability <= 0) 
+        if (durability <= 0)
         {
             Debug.WriteLine("Shield destroyed.");
             if (canvas.Children.Contains(shieldImage))
@@ -79,6 +73,12 @@ public class Shield
                 canvas.Children.Remove(shieldImage);
             }
             shieldImage.Tag = "destroyed";
+
+            return;
         }
+
+        durability--;
+
+        shieldImage.Source = LoadShieldImage(durability);
     }
 }
